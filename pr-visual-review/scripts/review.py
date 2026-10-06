@@ -30,14 +30,20 @@ PRIORITIES = {'required': 'PRで要対応', 'optional': '任意改善', 'investi
 AUTH_MODES = {'existing-session': '既存セッション', 'form': '通常ログイン',
               'manual': 'ユーザーによるログイン', 'fixture': '開発用fixture', 'none': 'ログイン不要'}
 AUTH_STATES = {'verified': '確認済み', 'unverified': '未確認', 'not-required': '不要'}
+EN_LABELS = json.loads((Path(__file__).resolve().parents[1] / 'assets/labels.en.json').read_text(encoding='utf-8'))
+
+
+def translate(report, text):
+    return EN_LABELS.get(text, text) if report.get('language', 'ja') == 'en' else text
 
 
 def authentication_text(report):
+    t = lambda value: translate(report, value)
     auth = report.get('authentication')
     if auth is None:
-        return '認証方法・結果の構造化記録なし'
-    return (f"認証: {AUTH_MODES[auth['mode']]} / Before: {AUTH_STATES[auth['before']]} / "
-            f"After: {AUTH_STATES[auth['after']]} / 権限・データ一致: {AUTH_STATES[auth['equivalence']]}")
+        return t('認証方法・結果の構造化記録なし')
+    return (f"{t('認証')}: {t(AUTH_MODES[auth['mode']])} / Before: {t(AUTH_STATES[auth['before']])} / "
+            f"After: {t(AUTH_STATES[auth['after']])} / {t('権限・データ一致')}: {t(AUTH_STATES[auth['equivalence']])}")
 
 
 def validate_authentication(auth):
@@ -101,34 +107,37 @@ def validate_case_v2(case, devices):
 
 
 def scope_text(report):
+    t = lambda value: translate(report, value)
     if 'scope' not in report:
-        return '対象端末の記録なし（旧形式）'
+        return t('対象端末の記録なし（旧形式）')
     devices = report['scope']['devices']
     label = 'PC・SP' if len(devices) == 2 else DEVICES[devices[0]] + 'のみ'
     basis = '明示指定' if report['scope']['basis'] == 'explicit' else '既定'
-    return f"{label} / {basis} — {report['scope']['note']}"
+    return f"{t(label)} / {t(basis)} — {report['scope']['note']}"
 
 
 def summary_lines(report):
+    t = lambda value: translate(report, value)
     issues = [issue for case in report['cases'] for issue in case.get('issues', [])]
     legacy = sum(case['result'] == 'needs-review' and not case.get('issues') for case in report['cases'])
-    return [f"PRで要対応: {sum(i['priority'] == 'required' for i in issues)}",
-            f"任意改善: {sum(i['priority'] == 'optional' for i in issues)}",
-            f"要調査: {sum(i['priority'] == 'investigate' for i in issues)}",
-            f"未確認ケース: {sum(c['result'] == 'unverified' for c in report['cases'])}"] + (
-                [f'要確認（未分類）: {legacy}'] if legacy else [])
+    return [f"{t('PRで要対応')}: {sum(i['priority'] == 'required' for i in issues)}",
+            f"{t('任意改善')}: {sum(i['priority'] == 'optional' for i in issues)}",
+            f"{t('要調査')}: {sum(i['priority'] == 'investigate' for i in issues)}",
+            f"{t('未確認ケース')}: {sum(c['result'] == 'unverified' for c in report['cases'])}"] + (
+                [f"{t('要確認（未分類）')}: {legacy}"] if legacy else [])
 
 
-def case_context(case):
+def case_context(case, report):
+    t = lambda value: translate(report, value)
     lines = []
     if 'device' in case:
         vp = case['viewport']
-        lines.append(f"{DEVICES[case['device']]} / {vp['width']} × {vp['height']} CSS px")
+        lines.append(f"{t(DEVICES[case['device']])} / {vp['width']} × {vp['height']} CSS px")
     if 'alignment' in case:
         a = case['alignment']
-        lines.append(f"撮影基準: {a['anchor']} — {a['note']}")
+        lines.append(f"{t('撮影基準')}: {a['anchor']} — {a['note']}")
     else:
-        lines.append('撮影基準の構造化記録なし。操作手順を参照してください。')
+        lines.append(t('撮影基準の構造化記録なし。操作手順を参照してください。'))
     return lines
 
 
@@ -185,6 +194,7 @@ def image_url(value):
 
 def validate(report, root, remote=False):
     require(isinstance(report, dict), 'report must be an object')
+    require(report.get('language', 'ja') in ('ja', 'en'), 'language must be ja or en')
     if 'authentication' in report:
         validate_authentication(report['authentication'])
     require(type(report.get('schema_version')) is int and report['schema_version'] in (1, 2), 'schema_version must be 1 or 2')
@@ -257,15 +267,16 @@ def marker(report):
     return f"<!-- pr-visual-review:v1 repo={report['repository']} pr={report['pr']} -->"
 
 
-def capture_cell(capture, side, root, remote):
+def capture_cell(capture, side, root, remote, report):
+    t = lambda value: translate(report, value)
     if capture['state'] != 'captured':
         label = '存在しない' if capture['state'] == 'absent' else '未確認'
-        return f"{label}: {safe_text(capture['note'])}"
+        return f"{t(label)}: {safe_text(capture['note'])}"
     url = image_url(capture['url']) if remote else image_path(capture['image'], root)
     cell = f'![{side}](<{url}>)'
     if 'detail_image' in capture:
         detail = image_url(capture['detail_url']) if remote else image_path(capture['detail_image'], root)
-        cell += f'<br>[変更箇所の拡大](<{detail}>)'
+        cell += f"<br>[{t('変更箇所の拡大')}](<{detail}>)"
     return cell
 
 
@@ -274,50 +285,52 @@ def render(report, root, remote=False, format='markdown'):
     require(format in ('markdown', 'html'), 'unsupported report format')
     if format == 'html':
         return render_html(report, root, remote)
+    t = lambda value: translate(report, value)
     lines = [marker(report), '## PR Visual Review', '',
-             f"対象: {safe_text(report['repository'])} #{report['pr']}", '',
-             f"確認範囲: {safe_text(scope_text(report))}", '',
+             f"{t('対象')}: {safe_text(report['repository'])} #{report['pr']}", '',
+             f"{t('確認範囲')}: {safe_text(scope_text(report))}", '',
              ' / '.join(summary_lines(report)), '',
-             '件数は記録された指摘の集計です。0件でも安全性・マージ可否の保証ではありません。', '',
-             '| Before commit | After commit | 比較元 |', '| --- | --- | --- |',
+             t('件数は記録された指摘の集計です。0件でも安全性・マージ可否の保証ではありません。'), '',
+             f"| Before commit | After commit | {t('比較元')} |", '| --- | --- | --- |',
              f"| `{report['before_sha']}` | `{report['head_sha']}` | {report['comparison']} |", '',
-             f"撮影日時: {safe_text(report['captured_at'])}", '',
-             f"ブラウザ: {safe_text(report['browser'])}", '',
+             f"{t('撮影日時')}: {safe_text(report['captured_at'])}", '',
+             f"{t('ブラウザ')}: {safe_text(report['browser'])}", '',
              authentication_text(report), '',
-             f"条件: {safe_text(report['conditions'])}", '',
-             '記載した画面・状態だけを確認しています。全画面の回帰がないことは保証しません。', '']
+             f"{t('条件')}: {safe_text(report['conditions'])}", '',
+             t('記載した画面・状態だけを確認しています。全画面の回帰がないことは保証しません。'), '']
     for case in report['cases']:
         lines += [f"### {safe_text(case['title'])}", '',
-                  f"画面: {safe_text(case['route'])}", '',
-                  f"選定根拠: {safe_text(case['reason'])}", '',
-                  f"ブラウザ: {safe_text(case.get('browser', report['browser']))}", '',
-                  f"条件: {safe_text(case.get('conditions', report['conditions']))}", '',
-                  *[safe_text(line) + '\n' for line in case_context(case)],
-                  '操作: ' + ' → '.join(safe_text(step) for step in case['steps']), '',
+                  f"{t('画面')}: {safe_text(case['route'])}", '',
+                  f"{t('選定根拠')}: {safe_text(case['reason'])}", '',
+                  f"{t('ブラウザ')}: {safe_text(case.get('browser', report['browser']))}", '',
+                  f"{t('条件')}: {safe_text(case.get('conditions', report['conditions']))}", '',
+                  *[safe_text(line) + '\n' for line in case_context(case, report)],
+                  t('操作') + ': ' + ' → '.join(safe_text(step) for step in case['steps']), '',
                   '| Before | After |', '| --- | --- |',
-                  f"| {capture_cell(case['before'], 'Before', root, remote)} | {capture_cell(case['after'], 'After', root, remote)} |", '',
-                  f"**{RESULTS[case['result']]}**: {safe_text(case['finding'])}", '']
+                  f"| {capture_cell(case['before'], 'Before', root, remote, report)} | {capture_cell(case['after'], 'After', root, remote, report)} |", '',
+                  f"**{t(RESULTS[case['result']])}**: {safe_text(case['finding'])}", '']
         for issue in case.get('issues', []):
-            lines += [f"- **{ORIGINS[issue['origin']]} / {PRIORITIES[issue['priority']]}**: {safe_text(issue['summary'])}",
-                      f"  - 根拠: {safe_text(issue['evidence'])}", f"  - 影響: {safe_text(issue['impact'])}", '']
-    lines += ['### 未確認事項・制約', '']
-    lines += ['- ' + safe_text(item) for item in report['limitations']] or ['- 記録された対象内に追加の制約はありません。']
+            lines += [f"- **{t(ORIGINS[issue['origin']])} / {t(PRIORITIES[issue['priority']])}**: {safe_text(issue['summary'])}",
+                      f"  - {t('根拠')}: {safe_text(issue['evidence'])}", f"  - {t('影響')}: {safe_text(issue['impact'])}", '']
+    lines += ['### ' + t('未確認事項・制約'), '']
+    lines += ['- ' + safe_text(item) for item in report['limitations']] or ['- ' + t('記録された対象内に追加の制約はありません。')]
     return '\n'.join(lines) + '\n'
 
 
 def render_html(report, root, remote):
     """Called only after validation; no scripts, network assets, or Markdown parsing."""
     esc = lambda value: html.escape(str(value), quote=True)
+    t = lambda value: translate(report, value)
     css = (Path(__file__).resolve().parents[1] / 'assets/report.css').read_text(encoding='utf-8')
 
     def figure(capture, side, title, detail=False):
-        label = side + (' / 詳細' if detail else '')
+        label = side + (' / ' + t('詳細') if detail else '')
         if capture['state'] != 'captured':
             state = '存在しない' if capture['state'] == 'absent' else '未確認'
-            return f'<figure><figcaption>{label} — {state}</figcaption><p class="missing">{esc(capture["note"])}</p></figure>'
+            return f'<figure><figcaption>{label} — {t(state)}</figcaption><p class="missing">{esc(capture["note"])}</p></figure>'
         key = 'detail_image' if detail else 'image'
         if key not in capture:
-            return f'<figure><figcaption>{label}</figcaption><p class="missing">詳細画像なし。上の文脈画像を参照してください。</p></figure>'
+            return f'<figure><figcaption>{label}</figcaption><p class="missing">{t("詳細画像なし。上の文脈画像を参照してください。")}</p></figure>'
         url_key = 'detail_url' if detail else 'url'
         src = image_url(capture[url_key]) if remote else image_path(capture[key], root)
         return (f'<figure><figcaption>{label}</figcaption><a href="{esc(src)}">'
@@ -329,44 +342,44 @@ def render_html(report, root, remote):
         title = esc(case['title'])
         nav.append(f'<li><a href="#{case["id"]}">{title}</a></li>')
         issues = ''.join(
-            f'<li class="issue {i["priority"]}"><strong>{ORIGINS[i["origin"]]} · {PRIORITIES[i["priority"]]}</strong>'
-            f'<p>{esc(i["summary"])}</p><p>根拠: {esc(i["evidence"])}</p><p>影響: {esc(i["impact"])}</p></li>'
+            f'<li class="issue {i["priority"]}"><strong>{t(ORIGINS[i["origin"]])} · {t(PRIORITIES[i["priority"]])}</strong>'
+            f'<p>{esc(i["summary"])}</p><p>{t("根拠")}: {esc(i["evidence"])}</p><p>{t("影響")}: {esc(i["impact"])}</p></li>'
             for i in case.get('issues', []))
         details = ''
         if any('detail_image' in case[s] for s in ('before', 'after')):
-            details = ('<details class="details-images"><summary>変更箇所の詳細を開く</summary><div class="pair">' +
+            details = (f'<details class="details-images"><summary>{t("変更箇所の詳細を開く")}</summary><div class="pair">' +
                        figure(case['before'], 'Before', case['title'], True) +
                        figure(case['after'], 'After', case['title'], True) + '</div></details>')
-        context = ''.join(f'<p>{esc(line)}</p>' for line in case_context(case))
+        context = ''.join(f'<p>{esc(line)}</p>' for line in case_context(case, report))
         steps = ''.join(f'<li>{esc(step)}</li>' for step in case['steps'])
         sections.append(
             f'<section id="{case["id"]}"><div class="case-heading"><h2>{title}</h2>'
-            f'<span class="status {case["result"]}">{RESULTS[case["result"]]}</span></div>'
+            f'<span class="status {case["result"]}">{t(RESULTS[case["result"]])}</span></div>'
             f'<p class="finding">{esc(case["finding"])}</p>'
             + (f'<ul class="issues">{issues}</ul>' if issues else '') +
             f'<div class="context">{context}</div><div class="pair">' +
             figure(case['before'], 'Before', case['title']) + figure(case['after'], 'After', case['title']) +
             '</div>' + details +
-            f'<details><summary>操作手順と比較条件</summary><p>画面: {esc(case["route"])}</p>'
-            f'<p>選定根拠: {esc(case["reason"])}</p><p>ブラウザ: {esc(case.get("browser",report["browser"]))}</p>'
-            f'<p>共通条件: {esc(report["conditions"])}</p>'
-            f'<p>個別条件: {esc(case.get("conditions",report["conditions"]))}</p><ol>{steps}</ol></details></section>')
-    limits = ''.join(f'<li>{esc(item)}</li>' for item in report['limitations']) or '<li>記録された対象内に追加の制約はありません。</li>'
+            f'<details><summary>{t("操作手順と比較条件")}</summary><p>{t("画面")}: {esc(case["route"])}</p>'
+            f'<p>{t("選定根拠")}: {esc(case["reason"])}</p><p>{t("ブラウザ")}: {esc(case.get("browser",report["browser"]))}</p>'
+            f'<p>{t("共通条件")}: {esc(report["conditions"])}</p>'
+            f'<p>{t("個別条件")}: {esc(case.get("conditions",report["conditions"]))}</p><ol>{steps}</ol></details></section>')
+    limits = ''.join(f'<li>{esc(item)}</li>' for item in report['limitations']) or f'<li>{t("記録された対象内に追加の制約はありません。")}</li>'
     counts = ''.join(f'<li>{esc(line)}</li>' for line in summary_lines(report))
-    return (f'<!doctype html>\n<html lang="ja"><head><meta charset="utf-8">'
+    return (f'<!doctype html>\n<html lang="{report.get("language", "ja")}"><head><meta charset="utf-8">'
             f'<meta name="viewport" content="width=device-width, initial-scale=1">'
             f'<meta http-equiv="Content-Security-Policy" content="default-src \'none\'; img-src \'self\' https:; style-src \'unsafe-inline\'; base-uri \'none\'; form-action \'none\'">'
-            f'<title>PR #{report["pr"]} · 画面比較</title><style>{css}</style></head><body><main>'
+            f'<title>PR #{report["pr"]} · {t("画面比較")}</title><style>{css}</style></head><body><main>'
             f'<header><p class="eyebrow">PR VISUAL REVIEW / {esc(report["repository"])}</p>'
-            f'<h1>PR #{report["pr"]} の画面比較</h1><p class="scope">{esc(scope_text(report))}</p>'
-            f'<ul class="summary">{counts}</ul><p class="muted">件数は記録された指摘の集計です。0件でも安全性・マージ可否の保証ではありません。</p>'
-            f'<details><summary>コミットと実行条件</summary><dl><dt>Before</dt><dd><code>{report["before_sha"]}</code></dd>'
-            f'<dt>After</dt><dd><code>{report["head_sha"]}</code></dd><dt>比較元</dt><dd>{report["comparison"]}</dd>'
-            f'<dt>撮影日時</dt><dd>{esc(report["captured_at"])}</dd><dt>ブラウザ</dt><dd>{esc(report["browser"])}</dd></dl>'
+            f'<h1>PR #{report["pr"]} {t("の画面比較")}</h1><p class="scope">{esc(scope_text(report))}</p>'
+            f'<ul class="summary">{counts}</ul><p class="muted">{t("件数は記録された指摘の集計です。0件でも安全性・マージ可否の保証ではありません。")}</p>'
+            f'<details><summary>{t("コミットと実行条件")}</summary><dl><dt>Before</dt><dd><code>{report["before_sha"]}</code></dd>'
+            f'<dt>After</dt><dd><code>{report["head_sha"]}</code></dd><dt>{t("比較元")}</dt><dd>{report["comparison"]}</dd>'
+            f'<dt>{t("撮影日時")}</dt><dd>{esc(report["captured_at"])}</dd><dt>{t("ブラウザ")}</dt><dd>{esc(report["browser"])}</dd></dl>'
             f'<p>{esc(report["conditions"])}</p><p>{esc(authentication_text(report))}</p></details></header>'
-            f'<nav aria-label="確認した画面"><ol>{"".join(nav)}</ol></nav>{"".join(sections)}'
-            f'<section><h2>未確認事項・制約</h2><ul>{limits}</ul></section>'
-            '<footer>記載した画面・状態だけを確認しています。全画面の回帰がないことは保証しません。</footer></main></body></html>\n')
+            f'<nav aria-label="{t("確認した画面")}"><ol>{"".join(nav)}</ol></nav>{"".join(sections)}'
+            f'<section><h2>{t("未確認事項・制約")}</h2><ul>{limits}</ul></section>'
+            f'<footer>{t("記載した画面・状態だけを確認しています。全画面の回帰がないことは保証しません。")}</footer></main></body></html>\n')
 
 
 def gh_api(endpoint, method='GET', payload=None, paginate=False):

@@ -5,6 +5,7 @@
 | フィールド | 内容 |
 | --- | --- |
 | schema_version | 新しい実行は `2`。保存済みの `1` も読み取り可能 |
+| language | `en` または `ja`。省略時は旧形式と同じ日本語。見出し・状態ラベルだけを切り替え、所見や操作等の本文は書き換えない |
 | scope | `devices: ["pc"]` / `["sp"]` / `["pc","sp"]`、`basis: explicit`または`default`、`note: 選定理由と範囲` |
 | repository / pr | github.com の `owner/repo` と正整数 |
 | before_sha / head_sha | 実際に起動・撮影した完全な40桁SHA |

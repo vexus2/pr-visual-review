@@ -1,0 +1,75 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta http-equiv="Content-Security-Policy" content="default-src 'none'; img-src 'self' https:; style-src 'unsafe-inline'; base-uri 'none'; form-action 'none'"><title>PR #123 · Visual review</title><style>/* Hallmark · preserved report layout: evidence comparison · tone: utilitarian
+ * audience: PR reviewers · task: compare captures and assess evidence
+ * pre-emit critique: P4 H4 E4 S5 R5 V3 */
+:root {
+  --paper: #ffffff;
+  --ink: #263445;
+  --muted: #536174;
+  --line: #cbd5e1;
+  --accent: #224da0;
+  --wash: #f3f6fa;
+  --alert: #973627;
+  --alert-wash: #fff6f2;
+  --font-body: system-ui, sans-serif;
+  --font-code: ui-monospace, monospace;
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; overflow-x: clip; }
+html { color: var(--ink); background: var(--paper); }
+body { font: 16px/1.7 var(--font-body); }
+main { max-width: 1440px; margin: 0 auto; padding: 40px 32px; }
+h1, h2 { line-height: 1.35; font-style: normal; overflow-wrap: anywhere; min-width: 0; }
+h1 { font-size: clamp(26px, 4vw, 40px); margin: 12px 0; }
+h2 { font-size: 24px; margin: 0; }
+p, li, dd, code, figcaption { overflow-wrap: anywhere; }
+.eyebrow, .muted, .context { color: var(--muted); }
+.eyebrow { font-size: 12px; letter-spacing: .08em; }
+.scope { font-size: 18px; font-weight: 600; }
+.summary { display: flex; flex-wrap: wrap; gap: 8px 24px; padding: 12px 0; margin: 16px 0 0; list-style: none; border-block: 1px solid var(--line); }
+.summary li { font-weight: 600; }
+nav { margin: 24px 0; }
+nav ol { padding-left: 24px; }
+nav a { display: inline-block; max-width: 100%; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; vertical-align: bottom; }
+a { color: var(--accent); text-underline-offset: 3px; }
+a:hover { text-decoration-thickness: 2px; }
+a:focus-visible, summary:focus-visible { outline: 2px solid var(--accent); outline-offset: 4px; }
+section { border-top: 1px solid var(--line); padding: 28px 0; scroll-margin-top: 16px; }
+.case-heading { display: flex; flex-wrap: wrap; align-items: baseline; gap: 12px 24px; }
+.status { color: var(--muted); font-size: 14px; }
+.status.needs-review { color: var(--alert); }
+.finding { max-width: 90ch; }
+.context { font-size: 14px; margin-bottom: 16px; }
+.context p { margin: 4px 0; }
+.pair { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 24px; align-items: start; }
+figure { margin: 0; min-width: 0; }
+figcaption { font-size: 14px; font-weight: 650; margin: 0 0 8px; }
+figure a { display: block; width: fit-content; max-width: 100%; }
+img { display: block; width: auto; max-width: 100%; height: auto; border: 1px solid var(--line); }
+.missing { margin: 0; background: var(--wash); padding: 20px; }
+details { margin: 16px 0; }
+summary { cursor: pointer; color: var(--accent); font-weight: 600; }
+details[open] > summary { margin-bottom: 16px; }
+.issues { list-style: none; padding: 0; margin: 16px 0; }
+.issue { border-left: 3px solid var(--line); padding: 12px 16px; margin: 12px 0; background: var(--wash); }
+.issue.required { border-color: var(--alert); background: var(--alert-wash); }
+.issue p { margin: 4px 0; }
+dl { display: grid; grid-template-columns: 100px minmax(0, 1fr); gap: 8px 16px; }
+dd { margin: 0; }
+code { font-family: var(--font-code); font-size: 13px; }
+footer { border-top: 1px solid var(--line); padding-top: 24px; color: var(--muted); font-size: 14px; }
+@media (max-width: 700px) {
+  main { padding: 24px 16px; }
+  .pair { grid-template-columns: minmax(0, 1fr); gap: 20px; }
+  .case-heading { display: block; }
+  .status { display: block; margin-top: 8px; }
+  h2 { font-size: 21px; }
+  dl { grid-template-columns: minmax(0, 1fr); gap: 0; }
+  dd { margin-bottom: 12px; }
+}
+@media print {
+  nav { display: none; }
+  main { padding: 0; }
+  figure, .issue { break-inside: avoid; }
+}
+</style></head><body><main><header><p class="eyebrow">PR VISUAL REVIEW / example/notification-demo</p><h1>PR #123 visual review</h1><p class="scope">Desktop + mobile / Requested — Local demo · desktop 1280x760 / mobile 375x844 · no live GitHub PR</p><ul class="summary"><li>Action required: 1</li><li>Optional improvements: 0</li><li>Needs investigation: 0</li><li>Unverified cases: 1</li></ul><p class="muted">Counts summarize recorded findings. Zero findings do not establish safety or approval to merge.</p><details><summary>Commits and environment</summary><dl><dt>Before</dt><dd><code>5849a73be8d4b821e4ba63aa29919b793d3a3c0d</code></dd><dt>After</dt><dd><code>9eb6c95a2b2e7e1ac6480fadbc8a120f0867bb46</code></dd><dt>Comparison</dt><dd>merge-base</dd><dt>Captured</dt><dd>2026-10-07T08:18:23+09:00</dd><dt>Browser</dt><dd>Google Chrome via Codex browser connection; running version not recorded</dd></dl><p>macOS; measured DPR 1.100000023841858; fixed demo data; English page content; browser locale ja; Asia/Tokyo; scroll (0,0). Matching CSS viewports on both revisions. Screenshots are unedited browser exports; scrollbar handling can change export dimensions.</p><p>Authentication: No login required / Before: Not required / After: Not required / Role and data equivalence: Not required</p></details></header><nav aria-label="Reviewed screens"><ol><li><a href="#pc-settings">Desktop: notification controls added</a></li><li><a href="#sp-settings">Mobile: Save moves off-screen</a></li><li><a href="#save-result">Post-save success state: not verified</a></li></ol></nav><section id="pc-settings"><div class="case-heading"><h2>Desktop: notification controls added</h2><span class="status intended">Expected change verified</span></div><p class="finding">Email notification controls are present. The existing fields and Save changes button remain visible.</p><div class="context"><p>Desktop / 1280 × 760 CSS px</p><p>Alignment: Workspace settings heading — Same heading position; horizontal scroll kept at zero.</p></div><div class="pair"><figure><figcaption>Before</figcaption><a href="images/pc-before.jpg"><img src="images/pc-before.jpg" loading="lazy" alt="Desktop: notification controls added — Before"></a></figure><figure><figcaption>After</figcaption><a href="images/pc-after.jpg"><img src="images/pc-after.jpg" loading="lazy" alt="Desktop: notification controls added — After"></a></figure></div><details><summary>Replay steps and conditions</summary><p>Route: /</p><p>Why this screen: The local Git diff adds email notification controls and activates the After layout. See change.patch. This is a demo fixture, not a live GitHub PR.</p><p>Browser: Google Chrome via Codex browser connection; running version not recorded</p><p>Shared conditions: macOS; measured DPR 1.100000023841858; fixed demo data; English page content; browser locale ja; Asia/Tokyo; scroll (0,0). Matching CSS viewports on both revisions. Screenshots are unedited browser exports; scrollbar handling can change export dimensions.</p><p>Case conditions: macOS; measured DPR 1.100000023841858; fixed demo data; English page content; browser locale ja; Asia/Tokyo; scroll (0,0). Matching CSS viewports on both revisions. Screenshots are unedited browser exports; scrollbar handling can change export dimensions.</p><ol><li>Open the matching local revision.</li><li>Set the measured CSS viewport to 1280x760.</li><li>Keep the fixed Design team data and scroll position (0, 0).</li><li>Inspect the controls and capture the viewport.</li></ol></details></section><section id="sp-settings"><div class="case-heading"><h2>Mobile: Save moves off-screen</h2><span class="status needs-review">Needs review</span></div><p class="finding">The new form extends past the 375px viewport. Save changes is no longer visible without horizontal scrolling.</p><ul class="issues"><li class="issue required"><strong>Introduced in this change · Action required</strong><p>Save changes is outside the mobile viewport.</p><p>Evidence: Before: document width 375px, button x=37..338. After: document width 616px, button x=405..595. See metrics.json and the captures below.</p><p>Impact: A user cannot see or reach Save at the initial horizontal scroll position. No full interaction test was performed.</p></li></ul><div class="context"><p>Mobile / 375 × 844 CSS px</p><p>Alignment: Workspace settings heading — Same heading position; horizontal scroll kept at zero.</p></div><div class="pair"><figure><figcaption>Before</figcaption><a href="images/sp-before.jpg"><img src="images/sp-before.jpg" loading="lazy" alt="Mobile: Save moves off-screen — Before"></a></figure><figure><figcaption>After</figcaption><a href="images/sp-after.jpg"><img src="images/sp-after.jpg" loading="lazy" alt="Mobile: Save moves off-screen — After"></a></figure></div><details><summary>Replay steps and conditions</summary><p>Route: /</p><p>Why this screen: The local Git diff adds email notification controls and activates the After layout. See change.patch. This is a demo fixture, not a live GitHub PR.</p><p>Browser: Google Chrome via Codex browser connection; running version not recorded</p><p>Shared conditions: macOS; measured DPR 1.100000023841858; fixed demo data; English page content; browser locale ja; Asia/Tokyo; scroll (0,0). Matching CSS viewports on both revisions. Screenshots are unedited browser exports; scrollbar handling can change export dimensions.</p><p>Case conditions: macOS; measured DPR 1.100000023841858; fixed demo data; English page content; browser locale ja; Asia/Tokyo; scroll (0,0). Matching CSS viewports on both revisions. Screenshots are unedited browser exports; scrollbar handling can change export dimensions.</p><ol><li>Open the matching local revision.</li><li>Set the measured CSS viewport to 375x844.</li><li>Keep the fixed Design team data and scroll position (0, 0).</li><li>Inspect the controls and capture the viewport.</li></ol></details></section><section id="save-result"><div class="case-heading"><h2>Post-save success state: not verified</h2><span class="status unverified">Not verified</span></div><p class="finding">The demo does not persist settings. A visible Save button is not evidence that saving works.</p><div class="context"><p>Desktop / 1280 × 760 CSS px</p><p>Alignment: Post-save success state — No genuine successful-save state is available to compare.</p></div><div class="pair"><figure><figcaption>Before — Not verified</figcaption><p class="missing">The fixture has no backend or post-save success view.</p></figure><figure><figcaption>After — Not verified</figcaption><p class="missing">Clicking Save produced no success view. The fixture prevents submission.</p></figure></div><details><summary>Replay steps and conditions</summary><p>Route: /</p><p>Why this screen: The requested save-state check needs a backend response; the fixture intentionally has no backend.</p><p>Browser: Google Chrome via Codex browser connection; running version not recorded</p><p>Shared conditions: macOS; measured DPR 1.100000023841858; fixed demo data; English page content; browser locale ja; Asia/Tokyo; scroll (0,0). Matching CSS viewports on both revisions. Screenshots are unedited browser exports; scrollbar handling can change export dimensions.</p><p>Case conditions: macOS; measured DPR 1.100000023841858; fixed demo data; English page content; browser locale ja; Asia/Tokyo; scroll (0,0). Matching CSS viewports on both revisions. Screenshots are unedited browser exports; scrollbar handling can change export dimensions.</p><ol><li>Click Save changes on the After desktop page.</li><li>Observe that the form remains visible without a success message.</li><li>Inspect the fixture: submit is prevented and there is no backend request.</li></ol></details></section><section><h2>Unverified scope and limitations</h2><ul><li>This is a deliberately constructed demo. The mobile regression is intentional. PR #123 is an illustrative identifier, not an existing GitHub PR.</li><li>The four app screenshots were captured from real Chrome and inspected. The HTML and Markdown use the standard bundled renderer.</li><li>Saving, email delivery, authentication, touch devices, Safari, and PR image publication were not verified.</li></ul></section><footer>Only the listed screens and states were inspected. This is not a guarantee against regressions elsewhere.</footer></main></body></html>

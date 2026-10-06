@@ -1,0 +1,139 @@
+{
+  "schema_version": 2,
+  "language": "en",
+  "repository": "example/notification-demo",
+  "pr": 123,
+  "before_sha": "5849a73be8d4b821e4ba63aa29919b793d3a3c0d",
+  "head_sha": "9eb6c95a2b2e7e1ac6480fadbc8a120f0867bb46",
+  "comparison": "merge-base",
+  "captured_at": "2026-10-07T08:18:23+09:00",
+  "browser": "Google Chrome via Codex browser connection; running version not recorded",
+  "scope": {
+    "devices": [
+      "pc",
+      "sp"
+    ],
+    "basis": "explicit",
+    "note": "Local demo · desktop 1280x760 / mobile 375x844 · no live GitHub PR"
+  },
+  "authentication": {
+    "mode": "none",
+    "before": "not-required",
+    "after": "not-required",
+    "equivalence": "not-required"
+  },
+  "conditions": "macOS; measured DPR 1.100000023841858; fixed demo data; English page content; browser locale ja; Asia/Tokyo; scroll (0,0). Matching CSS viewports on both revisions. Screenshots are unedited browser exports; scrollbar handling can change export dimensions.",
+  "cases": [
+    {
+      "id": "pc-settings",
+      "device": "pc",
+      "viewport": {
+        "width": 1280,
+        "height": 760
+      },
+      "title": "Desktop: notification controls added",
+      "route": "/",
+      "reason": "The local Git diff adds email notification controls and activates the After layout. See change.patch. This is a demo fixture, not a live GitHub PR.",
+      "steps": [
+        "Open the matching local revision.",
+        "Set the measured CSS viewport to 1280x760.",
+        "Keep the fixed Design team data and scroll position (0, 0).",
+        "Inspect the controls and capture the viewport."
+      ],
+      "alignment": {
+        "method": "page-top",
+        "anchor": "Workspace settings heading",
+        "note": "Same heading position; horizontal scroll kept at zero."
+      },
+      "result": "intended",
+      "finding": "Email notification controls are present. The existing fields and Save changes button remain visible.",
+      "before": {
+        "state": "captured",
+        "image": "images/pc-before.jpg"
+      },
+      "after": {
+        "state": "captured",
+        "image": "images/pc-after.jpg"
+      },
+      "issues": []
+    },
+    {
+      "id": "sp-settings",
+      "device": "sp",
+      "viewport": {
+        "width": 375,
+        "height": 844
+      },
+      "title": "Mobile: Save moves off-screen",
+      "route": "/",
+      "reason": "The local Git diff adds email notification controls and activates the After layout. See change.patch. This is a demo fixture, not a live GitHub PR.",
+      "steps": [
+        "Open the matching local revision.",
+        "Set the measured CSS viewport to 375x844.",
+        "Keep the fixed Design team data and scroll position (0, 0).",
+        "Inspect the controls and capture the viewport."
+      ],
+      "alignment": {
+        "method": "page-top",
+        "anchor": "Workspace settings heading",
+        "note": "Same heading position; horizontal scroll kept at zero."
+      },
+      "result": "needs-review",
+      "finding": "The new form extends past the 375px viewport. Save changes is no longer visible without horizontal scrolling.",
+      "before": {
+        "state": "captured",
+        "image": "images/sp-before.jpg"
+      },
+      "after": {
+        "state": "captured",
+        "image": "images/sp-after.jpg"
+      },
+      "issues": [
+        {
+          "origin": "introduced",
+          "priority": "required",
+          "summary": "Save changes is outside the mobile viewport.",
+          "evidence": "Before: document width 375px, button x=37..338. After: document width 616px, button x=405..595. See metrics.json and the captures below.",
+          "impact": "A user cannot see or reach Save at the initial horizontal scroll position. No full interaction test was performed."
+        }
+      ]
+    },
+    {
+      "id": "save-result",
+      "device": "pc",
+      "viewport": {
+        "width": 1280,
+        "height": 760
+      },
+      "title": "Post-save success state: not verified",
+      "route": "/",
+      "reason": "The requested save-state check needs a backend response; the fixture intentionally has no backend.",
+      "steps": [
+        "Click Save changes on the After desktop page.",
+        "Observe that the form remains visible without a success message.",
+        "Inspect the fixture: submit is prevented and there is no backend request."
+      ],
+      "alignment": {
+        "method": "unmatched",
+        "anchor": "Post-save success state",
+        "note": "No genuine successful-save state is available to compare."
+      },
+      "result": "unverified",
+      "finding": "The demo does not persist settings. A visible Save button is not evidence that saving works.",
+      "before": {
+        "state": "unverified",
+        "note": "The fixture has no backend or post-save success view."
+      },
+      "after": {
+        "state": "unverified",
+        "note": "Clicking Save produced no success view. The fixture prevents submission."
+      },
+      "issues": []
+    }
+  ],
+  "limitations": [
+    "This is a deliberately constructed demo. The mobile regression is intentional. PR #123 is an illustrative identifier, not an existing GitHub PR.",
+    "The four app screenshots were captured from real Chrome and inspected. The HTML and Markdown use the standard bundled renderer.",
+    "Saving, email delivery, authentication, touch devices, Safari, and PR image publication were not verified."
+  ]
+}

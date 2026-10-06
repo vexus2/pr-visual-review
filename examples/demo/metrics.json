@@ -1,0 +1,24 @@
+{
+  "before": {
+    "button": {
+      "left": 36.90340805053711,
+      "right": 337.6420249938965
+    },
+    "documentWidth": 375,
+    "dpr": 1.100000023841858,
+    "height": 844,
+    "scrollX": 0,
+    "width": 375
+  },
+  "after": {
+    "button": {
+      "left": 405.085205078125,
+      "right": 595.085205078125
+    },
+    "documentWidth": 616,
+    "dpr": 1.100000023841858,
+    "height": 844,
+    "scrollX": 0,
+    "width": 375
+  }
+}

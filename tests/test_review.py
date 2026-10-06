@@ -374,6 +374,30 @@ class ReviewTest(unittest.TestCase):
         r['authentication']['after']='verified'
         with self.assertRaises(ValueError): review.render(r,self.root)
 
+    def test_english_report_translates_labels_without_rewriting_evidence(self):
+        import re
+        r=self.v2()
+        r['language']='en'
+        r['scope']['note']='Desktop only'
+        r['conditions']='1280x760; fixed data'
+        r['limitations']=['No live delivery test.']
+        r['authentication']={'mode':'none','before':'not-required','after':'not-required','equivalence':'not-required'}
+        c=r['cases'][0]
+        c.update(title='Notification settings',reason='Added controls',steps=['Open settings'],finding='Controls are visible.',
+                 alignment={'method':'page-top','anchor':'Page heading','note':'Same position'})
+        for fmt in ['markdown','html']:
+            output=review.render(r,self.root,format=fmt)
+            self.assertIn('Action required: 0',output)
+            self.assertIn('Expected change verified',output)
+            self.assertIsNone(re.search(r'[\u3040-\u30ff\u4e00-\u9fff]',output))
+        c['finding']='Keep the observed text: 保存'
+        self.assertIn('Keep the observed text: 保存',review.render(r,self.root,format='html'))
+        self.assertIn('lang="en"',review.render(r,self.root,format='html'))
+
+    def test_unsupported_report_language_fails(self):
+        self.report['language']='xx'
+        with self.assertRaises(ValueError): review.render(self.report,self.root)
+
 
 if __name__ == '__main__':
     unittest.main()

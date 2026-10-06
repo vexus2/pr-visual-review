@@ -78,6 +78,8 @@ route is `unverified`, not `absent`. Never manufacture a missing Before.
 Copy [templates/report.json](templates/report.json) to a private run directory;
 follow [report-format.md](references/report-format.md). Fill it from observed
 evidence. Use `intended`, `needs-review`, `unchanged`, or `unverified` per state.
+Set `language` to `en` for English output or `ja` for Japanese (the legacy default).
+Write findings in the requested language; the renderer localizes labels only.
 `unchanged` requires both real captures. Classify each issue separately as
 introduced, worsened, pre-existing, or unknown, and its priority as required,
 optional, or investigate. Required needs observed usability impact and evidence

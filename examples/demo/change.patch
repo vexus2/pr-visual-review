@@ -1,0 +1,20 @@
+diff --git a/index.html b/index.html
+index e7e9f01..c077fcf 100644
+--- a/index.html
++++ b/index.html
+@@ -32,13 +32,13 @@ button:hover { filter:brightness(.9); } button:focus-visible,input:focus-visible
+  body[data-version="after"] .actions { flex-direction:row; }
+  body[data-version="after"] button { width:190px; }
+ }
+-</style></head><body data-version="before">
++</style></head><body data-version="after">
+ <header><strong>Workspace</strong><span>Demo workspace / Admin</span></header>
+ <main><h1>Workspace settings</h1><p class="muted">Manage your team details and notifications.</p>
+ <form onsubmit="event.preventDefault()">
+ <div class="rows"><label>Workspace name<input value="Design team" readonly></label>
+ <label>Language<select><option>English</option></select></label></div>
+-
++<section class="notifications"><h2>Email notifications</h2><p>Get an email when a review is requested or updated.</p><label><input type="checkbox" checked>Notify me about review updates</label></section>
+ <div class="actions"><span class="muted">Changes apply to everyone on your team</span><button type="submit">Save changes</button></div>
+ </form><p class="note">Demo data only. Saving does not call a backend.</p></main>
+ </body></html>
