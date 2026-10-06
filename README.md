@@ -6,7 +6,7 @@ English · [日本語](README.ja.md)
 
 Ask Codex or Claude Code to inspect a PR. The agent reads the diff, chooses the relevant screens, runs both revisions, and captures matching states in your browser. You get screenshots, findings, and an explicit list of what was not verified.
 
-## From a request to review evidence
+## How it works
 
 **1. Ask for the review.**
 
@@ -20,7 +20,7 @@ Write the report in English. Keep the results local.
 
 It identifies the settings page, starts the base and head in separate worktrees, matches the viewport and data, and checks the changed controls. No prewritten Playwright test is required.
 
-**3. Read the generated report.**
+**3. Read the report.**
 
 ![Generated visual review report: expected desktop change, one mobile finding, and one unverified state](examples/demo/images/report-overview.jpg)
 
@@ -32,7 +32,7 @@ This public demo uses a small local app with an intentional mobile regression. T
 | Action required | On mobile, the form becomes wider than the screen and the Save button moves off-screen. |
 | Not verified | The demo has no backend, so the post-save success state cannot be checked. |
 
-### The finding, not just the changed pixels
+### A mobile regression
 
 The Before screen fits within 375px. In After, the document is 616px wide and the Save button starts beyond the viewport. The report separates this regression from the expected addition of notification controls.
 
@@ -98,7 +98,7 @@ Or place a recipe at the target project's `.pr-visual-review.json` and say:
 Use .pr-visual-review.json for login. Review PR #123 on mobile only.
 ```
 
-Supported modes: existing session, form login, manual login, development fixture, and no login. Current instructions take priority over an explicitly selected config, then the project's config, then existing project guidance.
+Supported modes: existing session, form login, manual login, development fixture, and no login. Current instructions take priority over an explicitly selected config, then the project's config, then existing project instructions.
 
 Copy the [configuration example](pr-visual-review/templates/auth.example.json). Reference environment variable names or keys in a local JSON file; do not put password values in the skill or recipe. The agent checks identity, role, and comparison data separately on Before and After. Reports record only the mode and verification statuses.
 
@@ -106,7 +106,7 @@ Copy the [configuration example](pr-visual-review/templates/auth.example.json). 
 python3 /PATH/TO/SKILL/scripts/auth_config.py /PATH/TO/PROJECT/.pr-visual-review.json
 ```
 
-This validates the recipe. It does **not** read credentials or log in. Detailed [authentication guidance](pr-visual-review/references/authentication.md) is currently in Japanese.
+This checks the recipe. It does **not** read credentials or log in. Detailed [authentication guidance](pr-visual-review/references/authentication.md) is currently in Japanese.
 
 ## Output
 
@@ -114,7 +114,7 @@ A run produces screenshots plus `report.json`, `report.md`, and `report.html`.
 
 The report distinguishes **introduced**, **worsened**, **pre-existing**, and **unestablished** causes, with separate **required**, **optional**, and **investigate** priorities. Existing overflow or ordinary text wrapping is not automatically a blocker for the current PR.
 
-Generate both views from the same evidence record:
+Generate both views from the same report data:
 
 ```bash
 python3 /PATH/TO/SKILL/scripts/review.py render /PATH/TO/RUN/report.json > /PATH/TO/RUN/report.md
@@ -132,17 +132,17 @@ Keep HTML next to report.json and its images. GitHub displays HTML source; clone
 | Claude Code | Adapter instructions provided; live operation not yet verified |
 | GitHub comment create/update | Implemented and tested with a fake API; live posting not yet verified |
 | Screenshot upload | Requires your browser's attachment support or an explicitly chosen image host; no uploader is bundled |
-| Safari | Requires an available real Safari automation surface; not yet verified. WebKit is not labeled Safari |
+| Safari | Requires an available real Safari browser connection; not yet verified. WebKit is not labeled Safari |
 
 Posting through the helper requires authenticated `gh` access to github.com. The `publish` command is a dry run unless `--execute` is supplied. Uploaded images must be reviewed and accessible to PR readers. See [publication instructions](pr-visual-review/references/publishing.md) (Japanese).
 
-If capture succeeds but upload is unavailable, the agent keeps local artifacts and reports publication as incomplete. Preparing Markdown is not treated as successfully posting images.
+If capture succeeds but upload is unavailable, the agent keeps local saved files and reports publication as incomplete. Preparing Markdown is not treated as successfully posting images.
 
 ## Limits and data handling
 
 This is a skill and small helper scripts, not a complete visual regression test system. Screen selection can miss affected states. A clean report does not prove that every page, feature, or security property is correct.
 
-The project does not operate an image-hosting service. Its helper scripts and generated HTML contain no custom analytics or telemetry. Your AI host, browser integration, app, GitHub, and chosen image host have their own networking and data policies. Keep credentials and customer data out of artifacts and public issues.
+The project does not operate an image-hosting service. Its helper scripts and generated HTML contain no custom analytics or telemetry. Your AI host, browser integration, app, GitHub, and chosen image host have their own networking and data policies. Keep credentials and customer data out of saved files and public issues.
 
 Pixel diffs, CI orchestration, GitHub Enterprise, and a dedicated Safari driver are outside the current scope. Direct `file://` preview was blocked by the development browser tool; HTML rendering was checked over loopback HTTP.
 
