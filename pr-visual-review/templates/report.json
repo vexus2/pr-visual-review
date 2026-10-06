@@ -1,0 +1,30 @@
+{
+  "schema_version": 2,
+  "scope": {"devices": ["pc"], "basis": "default", "note": "対象端末の指定なし。PC 1280x1000を既定とします"},
+  "repository": "example/project",
+  "pr": 1,
+  "before_sha": "REPLACE_WITH_FULL_BEFORE_SHA",
+  "head_sha": "REPLACE_WITH_FULL_PR_HEAD_SHA",
+  "comparison": "merge-base",
+  "captured_at": "REPLACE_WITH_ISO_TIME_WITH_TIMEZONE",
+  "browser": "未起動: 実ブラウザ名/versionを記録してください",
+  "conditions": "viewport、DPR、OS、locale、timezone、zoom、fixture、scrollを記録してください",
+  "cases": [
+    {
+      "id": "target-state",
+      "device": "pc",
+      "viewport": {"width": 1280, "height": 1000},
+      "alignment": {"method": "unmatched", "anchor": "未選定", "note": "撮影前に共通の基準要素を選定してください"},
+      "issues": [],
+      "title": "対象の画面状態",
+      "route": "/path",
+      "reason": "変更ファイルと呼び出し元に基づく選定根拠",
+      "steps": ["Before/After双方で行う具体的な操作"],
+      "result": "unverified",
+      "finding": "未確認: 起動と撮影を完了していません。",
+      "before": {"state": "unverified", "note": "未撮影"},
+      "after": {"state": "unverified", "note": "未撮影"}
+    }
+  ],
+  "limitations": ["未確認の画面・状態・ブラウザを記録してください"]
+}

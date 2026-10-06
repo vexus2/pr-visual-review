@@ -1,0 +1,42 @@
+{
+  "schema_version": 1,
+  "repository": "example/local-fixture",
+  "pr": 1,
+  "before_sha": "080006e935a661ac2f186ff63d27a91075d2fedd",
+  "head_sha": "b5c0016f0aa29d746a0f84dd1b13ae3607a67863",
+  "comparison": "merge-base",
+  "captured_at": "2026-10-07T06:53:18+09:00",
+  "browser": "Google Chrome（インストール版154.0.8037.98、実行中versionは未照合）",
+  "conditions": "viewport 1551x1806 CSS px; DPR 1.100000023841858; locale ja; Asia/Tokyo; macOS 26.6.2; 同じChrome sessionと既定zoom; scroll top; メール通知オフの固定fixture; animationなし",
+  "cases": [
+    {
+      "id": "notification-modal-chrome-desktop",
+      "title": "ローカルfixture: 通知設定モーダル",
+      "route": "/",
+      "reason": "tests/smoke_server.pyが作成した2つのGitコミット。index.htmlの.actions gapだけを0pxから24pxへ変更。実PRではありません。",
+      "steps": [
+        "Before http://127.0.0.1:56186 と After http://127.0.0.1:56188 をそれぞれ開く",
+        "通知設定を編集をクリック",
+        "モーダルと2つのボタンが表示されたことを確認",
+        "同じviewportで全体を撮影。ツールclip x=570,y=840,width=565,height=310でモーダル全体の拡大画像も取得。保存画像を開いて欠けがないことを確認"
+      ],
+      "result": "intended",
+      "finding": "Beforeはキャンセルと保存の境界が接しています。Afterは両ボタンの間に間隔があり、モーダル内の見出し・本文も表示されています。画像を目視確認しました。",
+      "before": {
+        "state": "captured",
+        "image": "images/before.jpg",
+        "detail_image": "images/before-detail.jpg"
+      },
+      "after": {
+        "state": "captured",
+        "image": "images/after.jpg",
+        "detail_image": "images/after-detail.jpg"
+      }
+    }
+  ],
+  "limitations": [
+    "これはローカルで作成した検証用fixtureです。実GitHub PRの解析・画像アップロード・コメント投稿は実施していません。",
+    "Claude Codeでの実操作、Safari、認証が必要な実アプリ、モバイル実撮影は未実施です。",
+    "Chromeの実行中versionと数値zoomは未照合です。前後で表示されたviewportとDPRの一致を確認しました。"
+  ]
+}

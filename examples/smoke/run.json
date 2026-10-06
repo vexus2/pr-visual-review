@@ -1,0 +1,7 @@
+{
+  "before_sha": "080006e935a661ac2f186ff63d27a91075d2fedd",
+  "head_sha": "b5c0016f0aa29d746a0f84dd1b13ae3607a67863",
+  "fixture_only": true,
+  "before_url": "http://127.0.0.1:56186",
+  "after_url": "http://127.0.0.1:56188"
+}

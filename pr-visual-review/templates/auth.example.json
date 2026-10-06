@@ -1,0 +1,24 @@
+{
+  "schema_version": 1,
+  "auth": {
+    "mode": "form",
+    "login_path": "/signin",
+    "target_path": "/settings/site",
+    "account_label": "開発用のサイト管理者",
+    "required_role": "site-admin",
+    "credentials": {
+      "source": "env",
+      "username": "VISUAL_REVIEW_USERNAME",
+      "password": "VISUAL_REVIEW_PASSWORD"
+    },
+    "steps": [
+      "各ローカルアプリのlogin_pathを開く",
+      "メールアドレス欄とパスワード欄に、指定した参照先の値を入力する",
+      "ログインを押し、target_pathへ移動する"
+    ],
+    "success_checks": [
+      "ログイン画面ではなく対象の設定画面が表示される",
+      "Before/Afterで同じ権限・同じテストデータが表示される"
+    ]
+  }
+}

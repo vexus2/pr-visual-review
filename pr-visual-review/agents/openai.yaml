@@ -1,0 +1,4 @@
+interface:
+  display_name: "PR Visual Review"
+  short_description: "PRの画面変更を実ブラウザで確認し、変更前後の画像と所見を記録します"
+  default_prompt: "Use $pr-visual-review to inspect this PR locally and capture before/after screenshots."
