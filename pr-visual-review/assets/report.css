@@ -10,6 +10,9 @@
   --wash: #f3f6fa;
   --alert: #973627;
   --alert-wash: #fff6f2;
+  --annotation-change: #1767bd;
+  --annotation-issue: #c13928;
+  --annotation-reference: #596979;
   --font-body: system-ui, sans-serif;
   --font-code: ui-monospace, monospace;
 }
@@ -45,6 +48,18 @@ figure { margin: 0; min-width: 0; }
 figcaption { font-size: 14px; font-weight: 650; margin: 0 0 8px; }
 figure a { display: block; width: fit-content; max-width: 100%; }
 img { display: block; width: auto; max-width: 100%; height: auto; border: 1px solid var(--line); }
+.image-frame { position: relative; }
+.annotation-box { position: absolute; border: 3px solid; pointer-events: none; }
+.annotation-box.change { border-color: var(--annotation-change); }
+.annotation-box.issue { border-color: var(--annotation-issue); }
+.annotation-box.reference { border-color: var(--annotation-reference); }
+.annotation-box > span { position: absolute; top: 0; left: 0; padding: 2px 5px; color: var(--paper); font-size: 12px; line-height: 1.5; font-weight: 700; white-space: nowrap; }
+.annotation-box.change > span { background: var(--annotation-change); }
+.annotation-box.issue > span { background: var(--annotation-issue); }
+.annotation-box.reference > span { background: var(--annotation-reference); }
+.annotation-box.badge-right > span { left: auto; right: 0; }
+.annotation-legend { margin: 16px 0; font-size: 14px; }
+.annotation-legend ul { padding-left: 24px; }
 .missing { margin: 0; background: var(--wash); padding: 20px; }
 details { margin: 16px 0; }
 summary { cursor: pointer; color: var(--accent); font-weight: 600; }

@@ -38,7 +38,9 @@ The Before screen fits within 375px. In After, the document is 616px wide and th
 
 | Before: Save is visible | After: Save is off-screen |
 | --- | --- |
-| ![Before at 375px: settings and Save changes fit on screen](examples/demo/images/sp-before.jpg) | ![After at 375px: the form overflows and Save changes is outside the viewport](examples/demo/images/sp-after.jpg) |
+| ![Before at 375px: settings and Save changes fit on screen](examples/demo/annotated/sp-settings-before-5f6ac524a6bc9878.png) | ![After at 375px: the form overflows and Save changes is outside the viewport](examples/demo/annotated/sp-settings-after-a8d1362c51f45923.png) |
+
+Blue frames mark changes, red frames mark issues, and gray frames show the Before reference. Numbers connect each frame to its explanation. The AI chooses the regions after inspecting the images; this is not automatic pixel-diff detection. Original captures: [Before](examples/demo/images/sp-before.jpg) · [After](examples/demo/images/sp-after.jpg).
 
 [Read the report](examples/demo/report.md) · [Reproduce the demo](examples/demo/README.md) · [Validation notes](examples/validation.md)
 
@@ -110,16 +112,27 @@ This checks the recipe. It does **not** read credentials or log in. Detailed [au
 
 ## Output
 
-A run produces screenshots plus `report.json`, `report.md`, and `report.html`.
+A run produces screenshots plus `report.json`, `report.md`, and `report.html`. Changed areas and UI problems can be marked with numbered frames. The original screenshots are kept unchanged. HTML overlays the frames on the originals; Markdown and GitHub comments use separate annotated PNGs.
 
 The report distinguishes **introduced**, **worsened**, **pre-existing**, and **unestablished** causes, with separate **required**, **optional**, and **investigate** priorities. Existing overflow or ordinary text wrapping is not automatically a blocker for the current PR.
 
-Generate both views from the same report data:
+For reports without annotations, generate both views from the same report data:
 
 ```bash
 python3 /PATH/TO/SKILL/scripts/review.py render /PATH/TO/RUN/report.json > /PATH/TO/RUN/report.md
 python3 /PATH/TO/SKILL/scripts/review.py render /PATH/TO/RUN/report.json --format html > /PATH/TO/RUN/report.html
 ```
+
+For annotated screenshots in Markdown or a PR, install the optional PNG dependency in your Python environment and export the marked copies first:
+
+```bash
+python3 -m pip install -r /PATH/TO/SKILL/requirements-annotations.txt
+python3 /PATH/TO/SKILL/scripts/review.py annotate /PATH/TO/RUN/report.json --out /PATH/TO/RUN/report.annotated.json
+python3 /PATH/TO/SKILL/scripts/review.py render /PATH/TO/RUN/report.annotated.json > /PATH/TO/RUN/report.md
+python3 /PATH/TO/SKILL/scripts/review.py render /PATH/TO/RUN/report.annotated.json --format html > /PATH/TO/RUN/report.html
+```
+
+Use the derived JSON for publication too. Upload both the original and annotated images. The helper checks that the marked PNG still matches its source and region definitions. HTML overlays work without Pillow; missing PNGs or upload URLs block annotated PR publication. See [annotation instructions](pr-visual-review/references/annotations.md) (Japanese).
 
 Keep HTML next to report.json and its images. GitHub displays HTML source; clone/download the example to view it in a browser. Read the [report format](pr-visual-review/references/report-format.md) for details (Japanese).
 
@@ -162,7 +175,7 @@ Review local changes before updating. Do not discard edits to force an update. S
 python3 -m unittest discover -s tests -v
 ```
 
-The tests use Python's standard library, do not post to GitHub, and do not need a browser. Reproducible reports about browser integrations and PR publication are especially useful. See [CONTRIBUTING.md](CONTRIBUTING.md) and [validation notes](examples/validation.md) (currently Japanese).
+Core tests use Python's standard library. PNG export tests also need the optional Pillow dependency and are skipped without it. The tests do not post to GitHub and do not need a browser. Reproducible reports about browser integrations and PR publication are especially useful. See [CONTRIBUTING.md](CONTRIBUTING.md) and [validation notes](examples/validation.md) (currently Japanese).
 
 ## License
 

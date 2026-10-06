@@ -4,8 +4,10 @@ import json
 from pathlib import Path
 import tempfile
 import unittest
+import sys
 
 SCRIPT = Path(__file__).resolve().parents[1] / 'pr-visual-review/scripts/review.py'
+sys.path.insert(0, str(SCRIPT.parent))
 spec = importlib.util.spec_from_file_location('review', SCRIPT)
 review = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(review)
@@ -397,6 +399,118 @@ class ReviewTest(unittest.TestCase):
     def test_unsupported_report_language_fails(self):
         self.report['language']='xx'
         with self.assertRaises(ValueError): review.render(self.report,self.root)
+
+    def annotated(self):
+        r = self.v2()
+        r['language'] = 'en'
+        r['cases'][0]['annotations'] = [{'id': 1, 'kind': 'change', 'label': 'New notification controls',
+                                        'after': {'x': .1, 'y': .2, 'width': .6, 'height': .4}}]
+        return r
+
+    def test_annotation_html_has_overlay_legend_and_original_link(self):
+        r=self.annotated()
+        output=review.render(r,self.root,format='html')
+        self.assertIn('annotation-box change',output)
+        self.assertIn('left:10%',output)
+        self.assertIn('New notification controls',output)
+        self.assertIn('Original screenshots',output)
+        self.assertIn('images/after.png',output)
+
+    def test_annotation_validation_rejects_bad_boxes_and_missing_capture(self):
+        for box in [{'x':-.1,'y':0,'width':.3,'height':.3},
+                    {'x':.9,'y':0,'width':.3,'height':.3},
+                    {'x':0,'y':0,'width':0,'height':.3},
+                    {'x':True,'y':0,'width':.3,'height':.3},
+                    {'x':float('nan'),'y':0,'width':.3,'height':.3}]:
+            r=self.annotated();r['cases'][0]['annotations'][0]['after']=box
+            with self.subTest(box=box),self.assertRaises(ValueError):review.render(r,self.root,format='html')
+        r=self.annotated();r['cases'][0]['after']={'state':'unverified','note':'not captured'};r['cases'][0]['result']='unverified'
+        with self.assertRaises(ValueError):review.render(r,self.root,format='html')
+
+    def test_annotation_issue_requires_matching_issue_and_unique_ids(self):
+        r=self.annotated();r['cases'][0]['annotations'][0]['kind']='issue'
+        with self.assertRaises(ValueError):review.render(r,self.root,format='html')
+        r=self.annotated();r['cases'][0]['annotations']*=2
+        with self.assertRaises(ValueError):review.render(r,self.root,format='html')
+
+    def test_annotation_cannot_claim_change_in_unchanged_case(self):
+        r=self.annotated();r['cases'][0]['result']='unchanged'
+        with self.assertRaises(ValueError):review.render(r,self.root,format='html')
+
+    def test_markdown_requires_static_annotation_png(self):
+        r=self.annotated()
+        with self.assertRaisesRegex(ValueError,'annotate'):review.render(r,self.root)
+
+    def test_annotation_text_is_escaped(self):
+        r=self.annotated();r['cases'][0]['annotations'][0]['label']='<script>bad</script>'
+        output=review.render(r,self.root,format='html')
+        self.assertNotIn('<script>bad',output)
+        self.assertIn('&lt;script&gt;bad',output)
+
+    def test_png_export_preserves_source_and_checks_freshness(self):
+        try: from PIL import Image
+        except ImportError: self.skipTest('Optional PNG tests require Pillow')
+        import hashlib
+        for name in ['before','after']:Image.new('RGB',(400,300),'white').save(self.root/f'images/{name}.png')
+        r=self.annotated();source=(self.root/'images/after.png').read_bytes()
+        output=review.annotate(r,self.root)
+        c=output['cases'][0]['after']
+        self.assertEqual((self.root/'images/after.png').read_bytes(),source)
+        with Image.open(self.root/c['annotated_image']) as im:
+            self.assertEqual(im.size,(400,300))
+            self.assertEqual(im.getpixel((390,290))[:3],(255,255,255))
+            self.assertNotEqual(im.getpixel((40,60))[:3],(255,255,255))
+        md=review.render(output,self.root)
+        self.assertIn(c['annotated_image'],md)
+        self.assertIn('Original screenshot',md)
+        # Edited box and changed source both invalidate the derived file.
+        stale=copy.deepcopy(output);stale['cases'][0]['annotations'][0]['after']['x']=.2
+        with self.assertRaises(ValueError):review.render(stale,self.root)
+        Image.new('RGB',(400,300),'black').save(self.root/'images/after.png')
+        with self.assertRaises(ValueError):review.render(output,self.root)
+        # Export can refresh an old derivative after a metadata/source change.
+        self.assertIn('annotated_image',review.annotate(stale,self.root)['cases'][0]['after'])
+
+    def test_annotation_publication_requires_both_hosted_versions(self):
+        try: from PIL import Image
+        except ImportError: self.skipTest('Optional PNG tests require Pillow')
+        for name in ['before','after']:Image.new('RGB',(400,300),'white').save(self.root/f'images/{name}.png')
+        r=review.annotate(self.annotated(),self.root);api=FakeAPI()
+        with self.assertRaises(ValueError):review.publish(r,self.root,execute=True,images_reviewed=True,api=api)
+        self.assertFalse(api.writes)
+        r['cases'][0]['after']['annotated_url']='https://example.com/annotated.png'
+        result=review.publish(r,self.root,api=api)
+        self.assertIn('https://example.com/annotated.png',result['body'])
+        self.assertIn('https://example.com/after.png',result['body'])
+
+    def test_annotation_png_preserves_transparency_and_display_orientation(self):
+        try: from PIL import Image
+        except ImportError: self.skipTest('Optional PNG tests require Pillow')
+        Image.new('RGBA',(400,300),(0,0,0,0)).save(self.root/'images/after.png')
+        r=review.annotate(self.annotated(),self.root)
+        with self.subTest('transparency'), Image.open(self.root/r['cases'][0]['after']['annotated_image']) as im:
+            self.assertEqual(im.mode,'RGBA')
+            self.assertEqual(im.getpixel((390,290)),(0,0,0,0))
+        src=Image.new('RGB',(400,300),'white');exif=Image.Exif();exif[274]=6
+        src.save(self.root/'images/rotated.jpg',exif=exif)
+        r=self.annotated();r['cases'][0]['after']['image']='images/rotated.jpg'
+        r=review.annotate(r,self.root)
+        with Image.open(self.root/r['cases'][0]['after']['annotated_image']) as im:
+            self.assertEqual(im.size,(300,400))
+
+    def test_annotation_cli_cannot_overwrite_source_images(self):
+        import subprocess
+        try: from PIL import Image
+        except ImportError: self.skipTest('Optional PNG tests require Pillow')
+        Image.new('RGB',(400,300),'white').save(self.root/'images/after.png')
+        for filename in ['source.png','source.json']:
+            original=(self.root/'images/after.png').read_bytes()
+            (self.root/filename).write_bytes(original)
+            r=self.annotated();r['cases'][0]['after']['image']=filename
+            p=self.root/'report.json';p.write_text(json.dumps(r))
+            process=subprocess.run([sys.executable,str(SCRIPT),'annotate',str(p),'--out',str(self.root/filename)],capture_output=True,text=True)
+            self.assertNotEqual(process.returncode,0)
+            self.assertEqual((self.root/filename).read_bytes(),original)
 
 
 if __name__ == '__main__':

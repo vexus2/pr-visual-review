@@ -28,7 +28,7 @@ python3 pr-visual-review/scripts/auth_config.py pr-visual-review/templates/auth.
 4. Skillの手順を変えた場合は、具体的な利用シナリオで選択が変わることを確認します。実操作・シミュレーション・未検証を分けてPRへ記載してください。
 5. READMEと参照文書を更新し、変更内容と検証結果を添えてPRを作成します。
 
-通常のテストはPython標準ライブラリだけで動き、実GitHubへの書き込みやブラウザ接続を必要としません。`tests/smoke_server.py` は別途起動する手動ブラウザ検証用fixtureです。実PRへの投稿や画像アップロードを自動テストに無断で追加しないでください。
+基本のテストはPython標準ライブラリだけで動き、実GitHubへの書き込みやブラウザ接続を必要としません。注釈PNGのテストはrequirements-annotations.txtのPillowが必要で、未導入時はスキップされます。`tests/smoke_server.py` は別途起動する手動ブラウザ検証用fixtureです。実PRへの投稿や画像アップロードを自動テストに無断で追加しないでください。
 
 ## 維持したい性質
 

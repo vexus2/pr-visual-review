@@ -1,6 +1,6 @@
 # report.json v2（v1読み取り互換）
 
-`templates/report.json` を run ディレクトリにコピーして記録します。画像の基準パスは report.json の親ディレクトリです。ローカル report.md も同じ場所へ保存してください。Python 3.10以上、標準ライブラリだけを使用します。
+`templates/report.json` を run ディレクトリにコピーして記録します。画像の基準パスは report.json の親ディレクトリです。ローカル report.md も同じ場所へ保存してください。Python 3.10以上、基本処理は標準ライブラリだけを使用します。注釈付きPNGの書出しのみPillowが必要です。
 
 | フィールド | 内容 |
 | --- | --- |
@@ -18,6 +18,8 @@
 | limitations | 未確認browser、認証不可、除外範囲、条件相違等。ケースなしの場合は選定しなかった根拠を必ず入れる |
 
 case は `id`（一意の小文字slug）、`title`、`route`、`reason`（コード/参照関係による選定根拠）、`steps`（同じ状態に到達する操作の配列）、`result`、`finding`、`before`、`after` を持ちます。v2では以下も必須です。
+
+画像内の位置を示す場合はcaseへ `annotations` を追加します。[注釈の仕様と書出し手順](annotations.md)を参照してください。原画像のx/y/width/heightを0〜1に正規化し、枠・番号・説明を対応させます。旧レポートの注釈なし表示も引き続き使えます。
 
 ```json
 {

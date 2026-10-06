@@ -1,0 +1,2 @@
+# Optional: only needed for annotated PNGs used in Markdown / GitHub comments.
+Pillow>=10.1.0

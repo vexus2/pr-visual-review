@@ -19,6 +19,8 @@ GitHubのissue comment REST APIと `gh pr comment` は画像バイナリのア�
 
 report.json のcaptured画像へ `url` / `detail_url` を設定します。
 
+注釈付きのcaseでは、先に [annotations.md](annotations.md) の `annotate` コマンドでPNGとreport.annotated.jsonを作成します。原画像のurlと注釈PNGのannotated_urlを派生JSONへ設定し、以下のコマンドにもそのJSONを渡してください。HTMLだけで表示できていても、PNGをアップロードせずにGitHubへ枠を表示することはできません。
+
 ```bash
 # Markdownだけを確認する。ネットワークアクセスなし。
 python3 /ABS/SKILL/scripts/review.py render /ABS/RUN/report.json --remote > /ABS/RUN/comment.md

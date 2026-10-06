@@ -88,14 +88,28 @@ not automatically a PR blocker. See capture-plan.md for the decision criteria.
 Do not turn code-based guesses into visual findings. Distinguish local execution
 from production behavior. A zero required count is not a merge recommendation.
 
+Mark visible changes and issues following [annotations.md](references/annotations.md).
+Record numbered regions in `case.annotations`, measured against the saved image,
+not assumed DOM/viewport pixels. Blue After frames mark changes; red mark issues;
+gray Before frames are references. Keep originals. Never draw an off-screen or
+missing control into the screenshot. Mark a visible boundary and explain what is
+outside it. If a region cannot be identified reliably, report that limitation.
+
 Combine only the requested desktop/mobile and browsers as separate cases in one report,
 with per-case browser/conditions overrides. Publish that complete report once;
 separate publications replace the entire prior comment. Do not mix head SHAs.
 
-Run `python3 <skill-dir>/scripts/review.py render <run-dir>/report.json`
+When annotations exist, run `python3 <skill-dir>/scripts/review.py annotate
+<run-dir>/report.json --out <run-dir>/report.annotated.json`. Inspect the exported
+PNGs, and use that derived JSON for rendering and publication. Export requires
+optional Pillow; if unavailable, retain annotated HTML and report the PNG/PR
+step as incomplete. HTML draws overlays without Pillow.
+
+Run `python3 <skill-dir>/scripts/review.py render <run-dir>/report.annotated.json`
 and save stdout as `<run-dir>/report.md`. Also run the same command with
 `--format html` and save stdout as `<run-dir>/report.html` beside report.json.
 Use this renderer, not an ad-hoc HTML generator. Inspect the images and both outputs.
+For a run without annotations, use report.json directly.
 For local-only requests, skip section 5 and proceed to section 6 for cleanup
 and the final answer. Link local artifacts in that answer.
 

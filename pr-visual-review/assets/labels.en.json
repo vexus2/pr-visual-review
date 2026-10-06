@@ -1,5 +1,7 @@
 {
   "PC": "Desktop", "SP": "Mobile", "PCのみ": "Desktop only", "SPのみ": "Mobile only", "PC・SP": "Desktop + mobile",
+  "変更": "Change", "問題": "Issue", "参照": "Ref", "注釈付き": "Annotated", "原画像": "Original screenshot", "注釈なしの原画像": "Original screenshots (no annotations)",
+  "灰色はBeforeの参照箇所、青は変更、赤は問題です。番号は説明と対応します。": "Gray marks the Before reference; blue marks a change; red marks an issue. Numbers match the notes below.",
   "明示指定": "Requested", "既定": "Default", "対象端末の記録なし（旧形式）": "Device scope not recorded (legacy report)",
   "意図した変更を確認": "Expected change verified", "要確認": "Needs review", "見た目の変化なし": "No visible change", "未確認": "Not verified",
   "新規UI・今回発生": "Introduced in this change", "今回悪化": "Worsened in this change", "既存の問題": "Pre-existing issue", "因果未確定": "Cause not established",

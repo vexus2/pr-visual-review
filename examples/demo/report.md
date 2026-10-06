@@ -41,9 +41,13 @@ Steps: Open the matching local revision. → Set the measured CSS viewport to 12
 
 | Before | After |
 | --- | --- |
-| ![Before](<images/pc-before.jpg>) | ![After](<images/pc-after.jpg>) |
+| ![Before](<images/pc-before.jpg>) | ![After — Annotated](<annotated/pc-settings-after-ed0645c52588bf6f.png>)<br>[Original screenshot](<images/pc-after.jpg>) |
 
 **Expected change verified**: Email notification controls are present. The existing fields and Save changes button remain visible.
+
+Gray marks the Before reference; blue marks a change; red marks an issue. Numbers match the notes below.
+
+- 1 · Change: Email notification controls were added here.
 
 ### Mobile: Save moves off-screen
 
@@ -63,9 +67,13 @@ Steps: Open the matching local revision. → Set the measured CSS viewport to 37
 
 | Before | After |
 | --- | --- |
-| ![Before](<images/sp-before.jpg>) | ![After](<images/sp-after.jpg>) |
+| ![Before — Annotated](<annotated/sp-settings-before-5f6ac524a6bc9878.png>)<br>[Original screenshot](<images/sp-before.jpg>) | ![After — Annotated](<annotated/sp-settings-after-a8d1362c51f45923.png>)<br>[Original screenshot](<images/sp-after.jpg>) |
 
 **Needs review**: The new form extends past the 375px viewport. Save changes is no longer visible without horizontal scrolling.
+
+Gray marks the Before reference; blue marks a change; red marks an issue. Numbers match the notes below.
+
+- 1 · Issue: Before: Save is visible. After: the marked right edge clips the form; Save is off-screen to the right \(not drawn into the image\).
 
 - **Introduced in this change / Action required**: Save changes is outside the mobile viewport.
   - Evidence: Before: document width 375px, button x=37..338. After: document width 616px, button x=405..595. See metrics.json and the captures below.

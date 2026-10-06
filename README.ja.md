@@ -38,7 +38,9 @@ Beforeは375px内に収まっています。Afterはページ幅が616pxにな�
 
 | Before：保存ボタンが見える | After：保存ボタンが画面外 |
 | --- | --- |
-| ![375pxのBefore](examples/demo/images/sp-before.jpg) | ![375pxのAfter](examples/demo/images/sp-after.jpg) |
+| ![375pxのBefore](examples/demo/annotated/sp-settings-before-5f6ac524a6bc9878.png) | ![375pxのAfter](examples/demo/annotated/sp-settings-after-a8d1362c51f45923.png) |
+
+青枠は変更、赤枠は問題、灰色枠はBeforeの参照箇所です。番号と説明が対応しています。AIが画像を確認して領域を選ぶ方式で、ピクセル差分の自動検出ではありません。原画像も残しています：[Before](examples/demo/images/sp-before.jpg) · [After](examples/demo/images/sp-after.jpg)。
 
 [レポートを見る](examples/demo/report.md) · [デモの再現方法](examples/demo/README.md) · [検証範囲](examples/validation.md)
 
@@ -84,7 +86,7 @@ Claude Codeでは `/pr-visual-review` を使用できます。通常の自然言
 
 レポートは英語・日本語を指定できます。report.jsonの `language` を `en` / `ja` にすると見出しや判定ラベルが切り替わります（省略時は従来の日本語）。所見本文は自動翻訳されません。
 
-成果物は `report.json`・`report.md`・`report.html` と画像です。同じJSONから標準のHTMLを生成するため、セッションごとに独自のHTML生成コードを書く必要はありません。「今回発生」「今回悪化」「既存」「因果未確定」と「PRで要対応」「任意改善」「要調査」を分けて表示します。既存の横スクロールや通常の折り返しを、そのまま今回のPRの必須修正とは扱いません。
+成果物は `report.json`・`report.md`・`report.html` と画像です。変更箇所とUIの問題を枠・番号で示せます。原画像は変更せず、HTMLでは枠を重ね、MarkdownやPRでは別に書き出した注釈付きPNGを使います。同じJSONから標準のHTMLを生成するため、セッションごとに独自のHTML生成コードを書く必要はありません。「今回発生」「今回悪化」「既存」「因果未確定」と「PRで要対応」「任意改善」「要調査」を分けて表示します。既存の横スクロールや通常の折り返しを、そのまま今回のPRの必須修正とは扱いません。
 
 ## ログイン方法を指定する
 
@@ -112,7 +114,7 @@ python3 /ABS/SKILL/scripts/auth_config.py /ABS/PROJECT/.pr-visual-review.json
 
 - Git、対象リポジトリと依存導入/起動に必要なruntime。
 - 実Google Chromeを操作し、スクリーンショットをファイルへ保存できるAI側の連携。
-- レポート生成: Python 3.10以上。追加Pythonパッケージは不要です。
+- レポート生成: Python 3.10以上。HTMLの注釈表示は追加パッケージ不要です。注釈付きPNGの書出しのみPillowを使います。
 - 補助スクリプトからのPRコメント: github.comへ認証した `gh`。
 - 画像投稿: GitHubのファイル添付を操作できるブラウザ機能、または利用者が指定した画像保存先。**補助スクリプトには画像アップロード機能がありません。**
 
@@ -134,6 +136,16 @@ python3 /ABS/SKILL/scripts/auth_config.py /ABS/PROJECT/.pr-visual-review.json
 画像比較の対象は記録した画面と状態だけです。AIによる対象選定には見落としの可能性があり、「差が見えない」ことは全画面・機能・セキュリティの安全性を保証しません。
 
 ローカル結果の生成に、このプロジェクトが運営する外部サービスは不要です。補助スクリプト・生成HTMLには独自の解析/テレメトリー送信を実装していません。ただし、利用するAIホスト・ブラウザ連携・対象アプリ・GitHub・指定画像ホストの通信やデータ取扱いはそれぞれの仕様に従います。認証値や実顧客データを成果物へ含めないでください。
+
+## 注釈付きPNGの書き出し
+
+```bash
+python3 -m pip install -r /ABS/SKILL/requirements-annotations.txt
+python3 /ABS/SKILL/scripts/review.py annotate /ABS/RUN/report.json --out /ABS/RUN/report.annotated.json
+python3 /ABS/SKILL/scripts/review.py render /ABS/RUN/report.annotated.json > /ABS/RUN/report.md
+```
+
+原画像と注釈付きPNGをそれぞれアップロードし、投稿にも派生JSONを使います。原画像や座標を変更した場合は、古いPNGを使わず再出力が必要です。PillowがなくてもHTMLの注釈は表示できますが、必要なPNGやURLがない状態では注釈付きPR投稿を止めます。[注釈の設定と手順](pr-visual-review/references/annotations.md)を参照してください。
 
 ## 更新
 

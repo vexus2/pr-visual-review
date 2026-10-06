@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Validate evidence, render Markdown/offline HTML, and upsert an owned PR comment.
 
-Python 3.10+, standard library only. Does not capture, upload, start apps, or
+Python 3.10+, optional Pillow for annotated PNG export. Does not capture, upload, start apps, or
 infer visual findings. `publish` is a dry run unless --execute is supplied.
 """
 
@@ -15,6 +15,7 @@ import re
 import subprocess
 import sys
 from urllib.parse import quote, urlsplit
+import image_annotations
 
 RESULTS = {
     'intended': '意図した変更を確認',
@@ -256,8 +257,9 @@ def validate(report, root, remote=False):
             require('captured' in states, 'verified result requires actual screenshot evidence')
         if modern:
             validate_case_v2(case, report['scope']['devices'])
+            image_annotations.validate(case)
         else:
-            require(not any(key in case for key in ('issues', 'device', 'viewport', 'alignment')), 'structured evidence requires v2')
+            require(not any(key in case for key in ('issues', 'device', 'viewport', 'alignment', 'annotations')), 'structured evidence requires v2')
     if modern and cases:
         require(set(report['scope']['devices']) == {c['device'] for c in cases},
                 'include each requested device, using unverified cases when blocked')
@@ -267,13 +269,31 @@ def marker(report):
     return f"<!-- pr-visual-review:v1 repo={report['repository']} pr={report['pr']} -->"
 
 
-def capture_cell(capture, side, root, remote, report):
+def annotate(report, root):
+    validate(report, root)
+    return image_annotations.export(report, root)
+
+
+def annotation_legend(case, report):
+    t = lambda value: translate(report, value)
+    return [f"{a['id']} · {t('変更' if a['kind'] == 'change' else '問題')}: {a['label']}"
+            for a in case.get('annotations', [])]
+
+
+def capture_cell(case, side, root, remote, report):
+    capture = case[side.lower()]
     t = lambda value: translate(report, value)
     if capture['state'] != 'captured':
         label = '存在しない' if capture['state'] == 'absent' else '未確認'
         return f"{t(label)}: {safe_text(capture['note'])}"
     url = image_url(capture['url']) if remote else image_path(capture['image'], root)
-    cell = f'![{side}](<{url}>)'
+    if image_annotations.marks(case, side.lower()):
+        image_annotations.verify_derivative(case, side.lower(), root)
+        local = image_path(capture['annotated_image'], root)
+        marked = image_url(capture.get('annotated_url')) if remote else local
+        cell = f"![{side} — {t('注釈付き')}](<{marked}>)<br>[{t('原画像')}](<{url}>)"
+    else:
+        cell = f'![{side}](<{url}>)'
     if 'detail_image' in capture:
         detail = image_url(capture['detail_url']) if remote else image_path(capture['detail_image'], root)
         cell += f"<br>[{t('変更箇所の拡大')}](<{detail}>)"
@@ -307,8 +327,11 @@ def render(report, root, remote=False, format='markdown'):
                   *[safe_text(line) + '\n' for line in case_context(case, report)],
                   t('操作') + ': ' + ' → '.join(safe_text(step) for step in case['steps']), '',
                   '| Before | After |', '| --- | --- |',
-                  f"| {capture_cell(case['before'], 'Before', root, remote, report)} | {capture_cell(case['after'], 'After', root, remote, report)} |", '',
+                  f"| {capture_cell(case, 'Before', root, remote, report)} | {capture_cell(case, 'After', root, remote, report)} |", '',
                   f"**{t(RESULTS[case['result']])}**: {safe_text(case['finding'])}", '']
+        if case.get('annotations'):
+            lines += [t('灰色はBeforeの参照箇所、青は変更、赤は問題です。番号は説明と対応します。'), '']
+            lines += ['- ' + safe_text(line) for line in annotation_legend(case, report)] + ['']
         for issue in case.get('issues', []):
             lines += [f"- **{t(ORIGINS[issue['origin']])} / {t(PRIORITIES[issue['priority']])}**: {safe_text(issue['summary'])}",
                       f"  - {t('根拠')}: {safe_text(issue['evidence'])}", f"  - {t('影響')}: {safe_text(issue['impact'])}", '']
@@ -323,7 +346,7 @@ def render_html(report, root, remote):
     t = lambda value: translate(report, value)
     css = (Path(__file__).resolve().parents[1] / 'assets/report.css').read_text(encoding='utf-8')
 
-    def figure(capture, side, title, detail=False):
+    def figure(capture, side, title, detail=False, case=None):
         label = side + (' / ' + t('詳細') if detail else '')
         if capture['state'] != 'captured':
             state = '存在しない' if capture['state'] == 'absent' else '未確認'
@@ -333,8 +356,19 @@ def render_html(report, root, remote):
             return f'<figure><figcaption>{label}</figcaption><p class="missing">{t("詳細画像なし。上の文脈画像を参照してください。")}</p></figure>'
         url_key = 'detail_url' if detail else 'url'
         src = image_url(capture[url_key]) if remote else image_path(capture[key], root)
-        return (f'<figure><figcaption>{label}</figcaption><a href="{esc(src)}">'
-                f'<img src="{esc(src)}" loading="lazy" alt="{esc(title)} — {label}"></a></figure>')
+        selected = image_annotations.marks(case, side.lower()) if case and not detail else []
+        overlays = []
+        for a in selected:
+            box = a[side.lower()]
+            kind = 'reference' if side == 'Before' else a['kind']
+            style = ';'.join(f'{prop}:{box[key] * 100:g}%' for prop, key in
+                             [('left', 'x'), ('top', 'y'), ('width', 'width'), ('height', 'height')])
+            badge = f"{a['id']} · {t('参照' if side == 'Before' else '変更' if a['kind']=='change' else '問題')}"
+            right = ' badge-right' if box['x'] + box['width'] > .75 else ''
+            overlays.append(f'<span class="annotation-box {kind}{right}" style="{style}" aria-hidden="true"><span>{esc(badge)}</span></span>')
+        annotated = f' — {t("注釈付き")}' if selected else ''
+        return (f'<figure><figcaption>{label}{annotated}</figcaption><a class="image-frame" href="{esc(src)}" aria-label="{esc(title)} — {label} — {t("原画像")}">'
+                f'<img src="{esc(src)}" loading="lazy" alt="{esc(title)} — {label}">{"".join(overlays)}</a></figure>')
 
     sections = []
     nav = []
@@ -352,14 +386,21 @@ def render_html(report, root, remote):
                        figure(case['after'], 'After', case['title'], True) + '</div></details>')
         context = ''.join(f'<p>{esc(line)}</p>' for line in case_context(case, report))
         steps = ''.join(f'<li>{esc(step)}</li>' for step in case['steps'])
+        annotation_notes = ''
+        originals = ''
+        if case.get('annotations'):
+            annotation_notes = (f'<div class="annotation-legend"><p>{t("灰色はBeforeの参照箇所、青は変更、赤は問題です。番号は説明と対応します。")}</p><ul>'
+                                + ''.join(f'<li>{esc(line)}</li>' for line in annotation_legend(case, report)) + '</ul></div>')
+            originals = (f'<details><summary>{t("注釈なしの原画像")}</summary><div class="pair">'
+                         + figure(case['before'], 'Before', case['title']) + figure(case['after'], 'After', case['title']) + '</div></details>')
         sections.append(
             f'<section id="{case["id"]}"><div class="case-heading"><h2>{title}</h2>'
             f'<span class="status {case["result"]}">{t(RESULTS[case["result"]])}</span></div>'
             f'<p class="finding">{esc(case["finding"])}</p>'
             + (f'<ul class="issues">{issues}</ul>' if issues else '') +
             f'<div class="context">{context}</div><div class="pair">' +
-            figure(case['before'], 'Before', case['title']) + figure(case['after'], 'After', case['title']) +
-            '</div>' + details +
+            figure(case['before'], 'Before', case['title'], case=case) + figure(case['after'], 'After', case['title'], case=case) +
+            '</div>' + annotation_notes + originals + details +
             f'<details><summary>{t("操作手順と比較条件")}</summary><p>{t("画面")}: {esc(case["route"])}</p>'
             f'<p>{t("選定根拠")}: {esc(case["reason"])}</p><p>{t("ブラウザ")}: {esc(case.get("browser",report["browser"]))}</p>'
             f'<p>{t("共通条件")}: {esc(report["conditions"])}</p>'
@@ -438,12 +479,14 @@ def publish(report, root, execute=False, images_reviewed=False, api=None):
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     sub = parser.add_subparsers(dest='command', required=True)
-    for name in ('render', 'publish'):
+    for name in ('render', 'publish', 'annotate'):
         command = sub.add_parser(name)
         command.add_argument('report', type=Path, help='report.json; images are relative to this file')
         if name == 'render':
             command.add_argument('--remote', action='store_true', help='require hosted URLs instead of local paths')
             command.add_argument('--format', choices=['markdown', 'html'], default='markdown', help='offline HTML or Markdown')
+        elif name == 'annotate':
+            command.add_argument('--out', type=Path, required=True, help='new report JSON beside the original; never overwrite the input')
         else:
             command.add_argument('--execute', action='store_true', help='perform the user-authorized GitHub comment write')
             command.add_argument('--images-reviewed', action='store_true', help='confirm visual inspection and hosted-image access')
@@ -452,6 +495,20 @@ def main():
         report = json.loads(args.report.read_text(encoding='utf-8'))
         if args.command == 'render':
             print(render(report, args.report.parent, args.remote, args.format), end='')
+        elif args.command == 'annotate':
+            require(args.out.resolve() != args.report.resolve(), 'annotation report must not overwrite input')
+            require(not args.out.is_symlink() and args.out.parent.resolve() == args.report.parent.resolve(), 'save the derived JSON beside the original')
+            require(args.out.suffix.lower() == '.json', 'annotation report output must be a JSON file')
+            for case in report['cases']:
+                for side in ('before', 'after'):
+                    for key in ('image', 'detail_image', 'annotated_image'):
+                        if key in case[side]:
+                            source = args.report.parent / case[side][key]
+                            require(args.out.resolve() != source.resolve() and not (args.out.exists() and source.exists() and args.out.samefile(source)),
+                                    'annotation report must not overwrite a screenshot')
+            output = annotate(report, args.report.parent)
+            args.out.write_text(json.dumps(output, ensure_ascii=False, indent=2) + '\n', encoding='utf-8')
+            print(json.dumps({'report': str(args.out), 'annotated_sides': sum(bool(image_annotations.marks(c, s)) for c in report['cases'] for s in ('before','after'))}))
         else:
             print(json.dumps(publish(report, args.report.parent, args.execute, args.images_reviewed), ensure_ascii=False, indent=2))
     except (OSError, ValueError, KeyError, TypeError, RuntimeError) as error:

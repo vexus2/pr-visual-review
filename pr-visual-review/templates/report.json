@@ -16,6 +16,7 @@
       "viewport": {"width": 1280, "height": 1000},
       "alignment": {"method": "unmatched", "anchor": "未選定", "note": "撮影前に共通の基準要素を選定してください"},
       "issues": [],
+      "annotations": [],
       "title": "対象の画面状態",
       "route": "/path",
       "reason": "変更ファイルと呼び出し元に基づく選定根拠",
