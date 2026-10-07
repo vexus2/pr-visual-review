@@ -1,0 +1,62 @@
+"""Packaging invariants shared by Codex, Claude Code, and a copied plugin cache."""
+import json
+from pathlib import Path
+import shutil
+import subprocess
+import sys
+import tempfile
+import unittest
+
+ROOT = Path(__file__).resolve().parents[1]
+
+
+class PluginPackageTest(unittest.TestCase):
+    def load(self, path):
+        return json.loads((ROOT / path).read_text())
+
+    def test_hosts_share_the_same_identity_and_release(self):
+        manifests = [self.load(p) for p in ['plugin.json', '.codex-plugin/plugin.json', '.claude-plugin/plugin.json']]
+        self.assertEqual({m['name'] for m in manifests}, {'pr-visual-review'})
+        self.assertEqual(len({m['version'] for m in manifests}), 1)
+        self.assertRegex(manifests[0]['version'], r'^\d+\.\d+\.\d+$')
+        self.assertEqual(manifests[0]['$schema'], 'https://agent-plugins.org/schemas/1.0.0/plugin.schema.json')
+        for manifest in manifests:
+            self.assertNotIn('hooks', manifest)
+            self.assertNotIn('mcpServers', manifest)
+
+    def test_both_catalogs_resolve_this_plugin_not_an_external_directory(self):
+        codex = self.load('.agents/plugins/marketplace.json')
+        claude = self.load('.claude-plugin/marketplace.json')
+        self.assertEqual(codex['name'], claude['name'])
+        self.assertEqual(len(codex['plugins']), 1)
+        self.assertEqual(len(claude['plugins']), 1)
+        for entry in [codex['plugins'][0], claude['plugins'][0]]:
+            self.assertEqual(entry['name'], 'pr-visual-review')
+            path = entry['source']['path'] if isinstance(entry['source'], dict) else entry['source']
+            self.assertEqual((ROOT / path).resolve(), ROOT)
+        self.assertEqual(codex['plugins'][0]['policy']['installation'], 'AVAILABLE')
+        self.assertNotIn('version', claude['plugins'][0])
+
+    def test_plugin_skill_keeps_the_existing_source_as_single_authority(self):
+        link = ROOT / 'skills/pr-visual-review'
+        self.assertTrue(link.is_symlink())
+        self.assertEqual(link.resolve(), ROOT / 'pr-visual-review')
+        self.assertTrue((link / 'SKILL.md').is_file())
+
+    def test_copied_package_can_load_the_skill_helpers_and_assets(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            cache = Path(tmp)
+            for name in ['.codex-plugin', '.claude-plugin', 'skills', 'pr-visual-review']:
+                shutil.copytree(ROOT / name, cache / name, symlinks=True, ignore=shutil.ignore_patterns('__pycache__'))
+            shutil.copy2(ROOT / 'plugin.json', cache / 'plugin.json')
+            skill = cache / 'skills/pr-visual-review'
+            self.assertTrue(skill.resolve().is_relative_to(cache.resolve()))
+            for relative in ['assets/labels.en.json', 'assets/report.css', 'references/annotations.md',
+                             'scripts/image_annotations.py', 'requirements-annotations.txt']:
+                self.assertTrue((skill / relative).is_file(), relative)
+            process = subprocess.run([sys.executable, str(skill / 'scripts/review.py'), '--help'],
+                                     cwd=cache, capture_output=True, text=True)
+            self.assertEqual(process.returncode, 0, process.stderr)
+
+
+if __name__ == '__main__': unittest.main()

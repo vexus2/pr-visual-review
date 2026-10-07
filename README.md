@@ -4,6 +4,8 @@ English · [日本語](README.ja.md)
 
 **Turn a pull request into before/after screenshots and a visual review report.**
 
+A plugin for Codex and Claude Code, bundling the review skill and its local helpers.
+
 Ask Codex or Claude Code to inspect a PR. The agent reads the diff, chooses the relevant screens, runs both revisions, and captures matching states in your browser. You get screenshots, findings, and an explicit list of what was not verified.
 
 ## How it works
@@ -44,36 +46,56 @@ Blue frames mark changes, red frames mark issues, and gray frames show the Befor
 
 [Read the report](examples/demo/report.md) · [Reproduce the demo](examples/demo/README.md) · [Validation notes](examples/validation.md)
 
-## Install
+## Install the plugin
 
-Run this in the project you want to review:
+### Codex
+
+In a terminal with the Codex CLI installed:
+
+```bash
+codex plugin marketplace add vexus2/pr-visual-review
+codex plugin add pr-visual-review@pr-visual-review-marketplace
+```
+
+Start a new Codex session, select **PR Visual Review** in the plugin picker if available, and ask it to review a PR. The bundled skill is named `pr-visual-review`.
+
+### Claude Code
+
+In a terminal:
+
+```bash
+claude plugin marketplace add vexus2/pr-visual-review
+claude plugin install pr-visual-review@pr-visual-review-marketplace
+```
+
+Start a new session or run `/reload-plugins`, then invoke:
+
+```text
+/pr-visual-review:pr-visual-review Review PR #123 on desktop and mobile. Keep results local.
+```
+
+The examples below use the Codex skill name `$pr-visual-review`. In Claude Code, use the namespaced command above, or ask for PR Visual Review in plain language.
+
+### Requirements
+
+The plugin packages the workflow; it does not install a browser connection, Python, or your app's runtime. You need Git, Python **3.10+**, your app's dependencies, and a browser tool that can export screenshots. Annotated PNG export also needs optional Pillow. No hooks or MCP servers are bundled.
+
+The initial packaging targets Codex CLI **0.158.0** and Claude Code **2.1.284**. Older clients may not support these commands. This is a public repository marketplace, not a listing in either vendor's official directory. Windows operation has not been verified.
+
+<details>
+<summary>Already using the standalone skill?</summary>
+
+The original skill directory and existing development links still work. Avoid enabling both the standalone and plugin copies if you want one unambiguous workflow. Keep any local edits before removing a standalone installation. Plugin installation does not remove it automatically.
+
+The standalone CLI route remains available for environments without plugin support:
 
 ```bash
 npx skills add vexus2/pr-visual-review --skill pr-visual-review
 ```
 
-The [skills CLI](https://github.com/vercel-labs/skills) downloads and installs the skill files. Select your agent if prompted, or choose explicitly:
+That route uses the [skills CLI](https://github.com/vercel-labs/skills) and its own update tracking, not the plugin marketplace. Version 1.7.1 of that installer requires Node.js 22.20.0+.
 
-```bash
-# Codex
-npx skills add vexus2/pr-visual-review --skill pr-visual-review -a codex
-
-# Claude Code
-npx skills add vexus2/pr-visual-review --skill pr-visual-review -a claude-code
-```
-
-Use `-a codex -a claude-code` to install for both. Add `-g` for a user-wide installation; without it, the installation belongs to the current project. No manual clone or symlink setup is needed.
-
-The installer needs Node.js and Git. The verified CLI version, `skills` 1.7.1, requires Node.js **22.20.0+**. Running the skill needs Python **3.10+**, your app's runtime, and an agent environment that can control a browser and export screenshots. Annotated PNG export also needs the optional Pillow dependency. The installer does not set up these runtimes or a browser connection.
-
-Codex users can also ask the built-in installer:
-
-```text
-$skill-installer Install the skill from
-https://github.com/vexus2/pr-visual-review/tree/main/pr-visual-review
-```
-
-Open a new session and invoke `$pr-visual-review` in Codex or `/pr-visual-review` in Claude Code. See the official [Codex skill documentation](https://developers.openai.com/codex/skills) and [Claude Code skill documentation](https://code.claude.com/docs/en/skills). Local installation was verified on macOS; Windows installation has not been verified.
+</details>
 
 ## Choose what to review
 
@@ -160,51 +182,56 @@ If capture succeeds but upload is unavailable, the agent keeps local saved files
 
 ## Limits and data handling
 
-This is a skill and small helper scripts, not a complete visual regression test system. Screen selection can miss affected states. A clean report does not prove that every page, feature, or security property is correct.
+This plugin contains a skill and small helper scripts, not a complete visual regression test system. Screen selection can miss affected states. A clean report does not prove that every page, feature, or security property is correct.
 
 The project does not operate an image-hosting service. Its helper scripts and generated HTML contain no custom analytics or telemetry. Your AI host, browser integration, app, GitHub, and chosen image host have their own networking and data policies. Keep credentials and customer data out of saved files and public issues.
 
 Pixel diffs, CI orchestration, GitHub Enterprise, and a dedicated Safari driver are outside the current scope. Direct `file://` preview was blocked by the development browser tool; HTML rendering was checked over loopback HTTP.
 
-## Update
+## Update the plugin
 
-**Publishing a change on GitHub does not automatically update an installed copy.** For a skills CLI installation, run:
+### Claude Code: optional auto-updates
 
-```bash
-# From the project where you installed it
-npx skills update pr-visual-review --project
+Open `/plugin`, go to **Marketplaces**, select **pr-visual-review-marketplace**, and choose **Enable auto-update**. Third-party marketplaces have auto-update off by default; the publisher cannot turn it on for you.
 
-# If you installed it with -g
-npx skills update pr-visual-review --global
-```
-
-The installer may use symlinks, but they point to a local copy, not to GitHub. These commands fetch available upstream updates. Updates can replace installed files; keep your own changes in a fork or a development checkout.
-
-If you used Codex's built-in installer or copied the folder manually, the skills CLI may not track that installation. Use the same installation method to replace it with the newer version after checking any local changes.
-
-After updating files, ask an active agent to reread SKILL.md and its references, or start a new session. Updating the files and refreshing an agent's already-loaded instructions are separate steps. Installations on other machines also need updating.
-
-## Developing the skill
-
-Clone and symlink when you want to edit the skill itself. This is an alternative to the user installation above; do not overwrite an existing installation. macOS / Linux example:
+When an update is downloaded, run `/reload-plugins` to use it in the current session, or start a new session. To update manually:
 
 ```bash
-mkdir -p ~/src
-git clone https://github.com/vexus2/pr-visual-review.git ~/src/pr-visual-review
-cd ~/src/pr-visual-review
-
-mkdir -p ~/.agents/skills ~/.claude/skills
-ln -s "$PWD/pr-visual-review" ~/.agents/skills/pr-visual-review
-ln -s "$PWD/pr-visual-review" ~/.claude/skills/pr-visual-review
+claude plugin marketplace update pr-visual-review-marketplace
+claude plugin update pr-visual-review@pr-visual-review-marketplace
 ```
 
-Local edits to this checkout are immediately visible through those links. Remote changes still need to be fetched:
+### Codex
+
+Refresh this catalog and install its current plugin version:
 
 ```bash
-git -C ~/src/pr-visual-review pull --ff-only
+codex plugin marketplace upgrade pr-visual-review-marketplace
+codex plugin add pr-visual-review@pr-visual-review-marketplace
 ```
 
-Review local changes before pulling; do not discard edits to force an update. Avoid running the skills CLI installer over your development links. The full skill directory is required, including its scripts, references, assets, and dependency file.
+Start a new session after updating. Automatic background update timing depends on the Codex client and is not guaranteed here. Releases bump the plugin version; see [CHANGELOG.md](CHANGELOG.md).
+
+<details>
+<summary>Updating a standalone skill installation</summary>
+
+For a skills CLI installation, run `npx skills update pr-visual-review --project` from the project, or use `--global` for a user-wide installation. Manual copies and Codex's skill-installer use their own replacement procedure. These are separate from plugin updates.
+
+</details>
+
+## Developing the plugin
+
+Clone the repository when you want to edit it:
+
+```bash
+git clone https://github.com/vexus2/pr-visual-review.git
+cd pr-visual-review
+claude --plugin-dir .
+```
+
+For Codex, add the checkout as a local marketplace with `codex plugin marketplace add .`. Local development sources and GitHub sources with the same marketplace name should not be registered simultaneously. Keep your local changes before switching sources or pulling updates.
+
+The workflow's source stays in `pr-visual-review/`. The plugin exposes it at `skills/pr-visual-review/` through an internal relative link. See [plugin maintenance](docs/plugin-maintenance.md) for packaging and release steps.
 
 ## Contribute
 

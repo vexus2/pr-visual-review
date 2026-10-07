@@ -1,0 +1,12 @@
+{
+  "name": "pr-visual-review-marketplace",
+  "description": "PR Visual Review for Codex and Claude Code.",
+  "owner": {"name": "vexus2"},
+  "plugins": [
+    {
+      "name": "pr-visual-review",
+      "description": "Inspect PR UI changes and produce annotated before/after screenshots.",
+      "source": "./"
+    }
+  ]
+}

@@ -4,6 +4,8 @@
 
 **PRを渡すと、AIが変更前後の画面とレビュー結果をまとめます。**
 
+Codex / Claude Code向けのプラグインです。レビュー用Skillと補助スクリプトを同梱しています。
+
 Codex / Claude Codeが差分から確認対象を選び、前後をローカルで起動・撮影します。スクリーンショット、所見、未確認事項を記録したレポートが成果物です。
 
 ## 依頼からレビュー結果まで
@@ -44,36 +46,56 @@ Beforeは375px内に収まっています。Afterはページ幅が616pxにな�
 
 [レポートを見る](examples/demo/report.md) · [デモの再現方法](examples/demo/README.md) · [検証範囲](examples/validation.md)
 
-## 導入
+## プラグインの導入
 
-確認したいプロジェクトのディレクトリで実行します。
+### Codex
+
+Codex CLIを使えるターミナルで実行します。
+
+```bash
+codex plugin marketplace add vexus2/pr-visual-review
+codex plugin add pr-visual-review@pr-visual-review-marketplace
+```
+
+新しいCodexセッションを開き、プラグイン選択画面がある場合は **PR Visual Review** を選んでPRの確認を依頼します。同梱Skillの名前は `pr-visual-review` です。
+
+### Claude Code
+
+ターミナルで実行します。
+
+```bash
+claude plugin marketplace add vexus2/pr-visual-review
+claude plugin install pr-visual-review@pr-visual-review-marketplace
+```
+
+新しいセッションを開くか `/reload-plugins` を実行し、次のように呼び出します。
+
+```text
+/pr-visual-review:pr-visual-review PR #123をPCとSPで確認して。ローカル保存だけ。
+```
+
+以下の依頼例はCodexの `$pr-visual-review` 表記です。Claude Codeでは上の名前付きコマンドか、「PR Visual Reviewで確認して」という自然言語の依頼を使います。
+
+### 必要な環境
+
+プラグインは手順と補助コードをまとめたものです。ブラウザ接続、Python、対象アプリの実行環境は導入されません。Git、Python **3.10以上**、アプリの依存関係、スクリーンショットを保存できるブラウザ連携が必要です。注釈PNGの書出しには任意のPillow依存を使います。HooksやMCPサーバーは同梱していません。
+
+初版のパッケージ検証対象はCodex CLI **0.158.0**、Claude Code **2.1.284**です。古いクライアントではコマンドが使えない場合があります。公開リポジトリから配布する独自カタログであり、各社の公式ディレクトリへの掲載を意味しません。Windowsでの動作は未検証です。
+
+<details>
+<summary>すでにSkill単体で使っている場合</summary>
+
+元のSkillディレクトリと既存の開発用リンクは維持しています。呼び出し先を一つにしたい場合は、Skill単体版とプラグイン版を同時に有効にしないでください。独自の変更を保存してから移行します。プラグインのインストールだけで旧版が自動削除されることはありません。
+
+プラグイン非対応の環境では、従来の方法も使えます。
 
 ```bash
 npx skills add vexus2/pr-visual-review --skill pr-visual-review
 ```
 
-[skills CLI](https://github.com/vercel-labs/skills)が必要なファイルの取得と配置を行います。エージェントの選択を求められたら利用するものを選んでください。明示的に指定することもできます。
+こちらは [skills CLI](https://github.com/vercel-labs/skills) の管理対象で、プラグインの更新とは別です。検証したインストーラー1.7.1にはNode.js 22.20.0以上が必要です。
 
-```bash
-# Codex
-npx skills add vexus2/pr-visual-review --skill pr-visual-review -a codex
-
-# Claude Code
-npx skills add vexus2/pr-visual-review --skill pr-visual-review -a claude-code
-```
-
-両方なら `-a codex -a claude-code` を指定します。`-g` を付けるとユーザー共通の導入先、付けなければ現在のプロジェクト内に配置されます。手動のcloneやシンボリックリンク作成は不要です。
-
-インストーラーにはNode.jsとGitが必要です。検証したskills CLI 1.7.1はNode.js **22.20.0以上**を要求します。Skillの実行にはPython **3.10以上**、対象アプリの実行環境、ブラウザ操作と画像保存ができる連携が必要です。注釈PNGの書出しには追加でPillowを使います。これらの環境やブラウザ接続はインストーラーでは設定されません。
-
-Codexでは組み込みのインストーラーにも依頼できます。
-
-```text
-$skill-installer 次のURLのSkillをインストールしてください。
-https://github.com/vexus2/pr-visual-review/tree/main/pr-visual-review
-```
-
-新しいセッションで、Codexなら `$pr-visual-review`、Claude Codeなら `/pr-visual-review` を使います。公式の [Codex Skills](https://developers.openai.com/codex/skills) と [Claude Code Skills](https://code.claude.com/docs/en/skills) も参照してください。ローカル導入はmacOSで検証済みです。Windowsでの導入は未検証です。
+</details>
 
 ## 使い方
 
@@ -85,7 +107,7 @@ $pr-visual-review PR #123 をPCとSPの両方で確認して。
 $pr-visual-review https://github.com/owner/repo/pull/123 の変更前後のスクショをPRに貼って。
 ```
 
-Claude Codeでは `/pr-visual-review` を使用できます。通常の自然言語依頼でも内容が一致すればスキルの選択対象になります。
+Claude Codeのプラグイン版では `/pr-visual-review:pr-visual-review` を使用できます。通常の自然言語依頼でも内容が一致すればスキルの選択対象になります。
 
 「確認して」はローカル保存、「PRに貼って」は画像添付とPRコメントまでが対象です。「PCのみ」「SPのみ」「両方」を指定できます。対象外の端末は撮影せず、未確認件数にも足しません。SPはブラウザのスマホ幅での確認で、実機・タッチ操作の検証とは区別します。
 
@@ -154,49 +176,59 @@ python3 /ABS/SKILL/scripts/review.py render /ABS/RUN/report.annotated.json > /AB
 
 原画像と注釈付きPNGをそれぞれアップロードし、投稿にも派生JSONを使います。原画像や座標を変更した場合は、古いPNGを使わず再出力が必要です。PillowがなくてもHTMLの注釈は表示できますが、必要なPNGやURLがない状態では注釈付きPR投稿を止めます。[注釈の設定と手順](pr-visual-review/references/annotations.md)を参照してください。
 
-## 更新
+## プラグインの更新
 
-**GitHub側で更新しても、インストール済みのファイルには自動反映されません。** skills CLIで導入した場合は、次のコマンドで更新します。
+### Claude Code：自動更新を有効にする場合
 
-```bash
-# 導入したプロジェクトのディレクトリで実行
-npx skills update pr-visual-review --project
+`/plugin` → **Marketplaces** → **pr-visual-review-marketplace** → **Enable auto-update** を選びます。第三者のカタログは初期状態では自動更新が無効で、配布者側から有効にはできません。
 
-# -gで導入した場合
-npx skills update pr-visual-review --global
-```
-
-インストーラーが作るシンボリックリンクは、GitHubではなく利用者のローカルコピーを参照します。上のコマンドで公開元の更新を取得します。インストール先のファイルは置き換わることがあるので、独自の改修はforkや開発用checkoutで管理してください。
-
-Codexの組み込みインストーラーや手動コピーで配置したものは、skills CLIの更新対象として登録されていない場合があります。ローカルの変更を確認したうえで、導入に使った方法で新版へ置き換えてください。
-
-ファイルを更新した後は、実行中のエージェントに「SKILL.mdと参照ファイルをディスクから読み直して」と依頼するか、新しいセッションを開きます。ファイルの更新と、読み込み済み手順の再読み込みは別です。別マシンの導入先もそれぞれ更新が必要です。
-
-## Skill自体を開発する場合
-
-Skillを改修する場合は、cloneした作業フォルダをリンクする方法が便利です。上の一般利用者向け手順とは別の導入方法なので、既存の配置を上書きしないでください。macOS / Linuxの例です。
+更新後、現在のセッションで使うには `/reload-plugins` を実行します。新しいセッションでは更新後の内容が読み込まれます。手動更新する場合は次のコマンドを使います。
 
 ```bash
-mkdir -p ~/src
-git clone https://github.com/vexus2/pr-visual-review.git ~/src/pr-visual-review
-cd ~/src/pr-visual-review
-
-mkdir -p ~/.agents/skills ~/.claude/skills
-ln -s "$PWD/pr-visual-review" ~/.agents/skills/pr-visual-review
-ln -s "$PWD/pr-visual-review" ~/.claude/skills/pr-visual-review
+claude plugin marketplace update pr-visual-review-marketplace
+claude plugin update pr-visual-review@pr-visual-review-marketplace
 ```
 
-この作業フォルダで行った編集は、リンク先からもすぐに見えます。ただしGitHub側の変更を取り込むには、次の操作が必要です。
+### Codex
+
+カタログを更新し、その時点のプラグインをインストールします。
 
 ```bash
-git -C ~/src/pr-visual-review pull --ff-only
+codex plugin marketplace upgrade pr-visual-review-marketplace
+codex plugin add pr-visual-review@pr-visual-review-marketplace
 ```
 
-ローカルの差分を確認してから実行し、更新のために変更を強制破棄しないでください。開発用のリンクに対してskills CLIで上書きインストールすることは避けてください。スクリプト・参照文書・assets・依存定義を含むSkillディレクトリ全体が必要です。
+更新後は新しいセッションを開いてください。バックグラウンドでの自動更新時期はクライアントに依存するため、このリポジトリでは保証していません。リリース時はプラグインのバージョンを上げます。[CHANGELOG.md](CHANGELOG.md)に記録します。
+
+<details>
+<summary>Skill単体版の更新</summary>
+
+skills CLIで導入した場合は対象プロジェクトで `npx skills update pr-visual-review --project`、ユーザー共通配置なら `--global` を使います。手動コピーやCodexのskill-installerで配置したものは、その方法で新版へ置き換えます。プラグインの更新とは別です。
+
+</details>
+
+## プラグインを開発する場合
+
+改修する場合はリポジトリをcloneします。
+
+```bash
+git clone https://github.com/vexus2/pr-visual-review.git
+cd pr-visual-review
+claude --plugin-dir .
+```
+
+Codexでは `codex plugin marketplace add .` でcheckoutをローカルカタログとして登録できます。同じカタログ名のローカル版とGitHub版は同時に登録せず、切替やpullの前にローカルの変更を保存してください。
+
+Skillの実体は `pr-visual-review/` に残し、プラグインの `skills/pr-visual-review/` から内部リンクで参照します。公開時の手順は [プラグインの保守](docs/plugin-maintenance.md) を参照してください。
 
 ## 同梱内容
 
 ```text
+plugin.json                共通プラグイン定義
+.codex-plugin/             Codex用定義
+.claude-plugin/            Claude Code用定義とカタログ
+.agents/plugins/           Codex用カタログ
+skills/pr-visual-review/   Skillの実体への内部リンク
 pr-visual-review/
   SKILL.md                 共通の実行手順
   agents/openai.yaml       Codex UIメタデータ

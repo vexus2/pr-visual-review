@@ -2,6 +2,14 @@
 
 実施日: 2026-10-07 JST
 
+## プラグイン形式
+
+- 共通manifest、Codex / Claude Code互換manifest、両ホストのリポジトリカタログを追加しました。初回バージョンは0.1.0です。
+- 63件のテストが成功しました。各manifestの名前/version一致、カタログからの解決、既存Skill実体との内部リンク、コピー先でのスクリプト・assets読込を確認しています。
+- Codex CLI 0.158.0でローカルカタログを登録し、pr-visual-review 0.1.0がavailableとして認識されることを確認しました。
+- Claude Code 2.1.284の `--plugin-dir` で、Skill 1件・Hooks/MCP/Agents/LSP 0件のinventoryを確認しました。カタログはstrict validation成功。manifestには内部symlinkを追跡しないvalidatorの警告だけがあり、リンクを実体化した一時コピーではstrict validationも成功しました。
+- この確認はパッケージの認識と読込の検証です。新規のアプリ撮影やPR投稿の再検証、公式プラグインディレクトリへの掲載審査を行ったものではありません。
+
 ## インストーラー経由の導入
 
 - skills CLI 1.7.1を一時プロジェクトで実行し、公開リポジトリから `pr-visual-review` をCodex / Claude Code向けに導入しました。既存のユーザー共通Skillやリンクは変更していません。
