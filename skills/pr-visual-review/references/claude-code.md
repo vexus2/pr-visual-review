@@ -10,4 +10,4 @@
 
 基本の記録と出版契約は Codex と共通です。Chrome連携だけで `gh` 認証も利用できるとは仮定しません。`gh` がない場合はGitHub UIで同じmarker・投稿者・PR headを照合して投稿します。CLIがなくてもローカルreport生成はPythonで実行できます。
 
-Skillの導入先は `~/.claude/skills/pr-visual-review/` または対象リポジトリの `.claude/skills/pr-visual-review/` です。[公式Skills文書](https://code.claude.com/docs/en/skills) を参照してください。
+このSkillはプラグインとして導入します。READMEの `claude plugin marketplace add` / `claude plugin install` の手順に従い、呼び出し名は `/pr-visual-review:pr-visual-review` です。checkoutから直接読み込む場合は `claude --plugin-dir .` を使います。本文中の `<skill-dir>` は、プラグインキャッシュ内の `skills/pr-visual-review/` を指します。[公式プラグイン文書](https://code.claude.com/docs/en/plugins) と [公式Skills文書](https://code.claude.com/docs/en/skills) を参照してください。

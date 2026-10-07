@@ -1,6 +1,6 @@
 {
   "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
   "name": "pr-visual-review",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "Review PR UI changes with before/after screenshots, numbered annotations, and explicit findings."
 }

@@ -1,0 +1,5 @@
+blank_issues_enabled: true
+contact_links:
+  - name: Security issue
+    url: https://github.com/vexus2/pr-visual-review/security/policy
+    about: Do not open a public issue for vulnerabilities. Follow SECURITY.md instead.

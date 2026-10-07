@@ -1,6 +1,9 @@
 __pycache__/
 *.py[cod]
+.venv/
 .DS_Store
 .visual-review/
 .env
 .env.*
+# Working notes and plans; not part of the distributed plugin.
+docs/

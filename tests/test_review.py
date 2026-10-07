@@ -6,7 +6,7 @@ import tempfile
 import unittest
 import sys
 
-SCRIPT = Path(__file__).resolve().parents[1] / 'pr-visual-review/scripts/review.py'
+SCRIPT = Path(__file__).resolve().parents[1] / 'skills/pr-visual-review/scripts/review.py'
 sys.path.insert(0, str(SCRIPT.parent))
 spec = importlib.util.spec_from_file_location('review', SCRIPT)
 review = importlib.util.module_from_spec(spec)
@@ -204,6 +204,45 @@ class ReviewTest(unittest.TestCase):
             return response
         result = review.publish(self.report, self.root, execute=True, images_reviewed=True, api=changing)
         self.assertFalse(result['head_still_current'])
+
+    def test_comment_without_author_is_ignored_not_crashed(self):
+        # GitHub returns user=null for comments whose author account was deleted.
+        api = FakeAPI([{'id': 1, 'user': None, 'body': review.marker(self.report)}])
+        result = review.publish(self.report, self.root, api=api)
+        self.assertEqual(result['action'], 'create')
+        self.assertFalse(api.writes)
+
+    def test_paginated_gh_output_is_parsed_without_slurp(self):
+        # `gh api --paginate` prints one JSON document per page, concatenated.
+        self.assertEqual(review.json_documents('[{"id": 1}]\n[{"id": 2}, {"id": 3}]\n'), [[{'id': 1}], [{'id': 2}, {'id': 3}]])
+        self.assertEqual(review.json_documents('   '), [])
+        with self.assertRaises(ValueError):
+            review.json_documents('[1] trailing')
+        calls = []
+
+        class Completed:
+            returncode = 0
+            stdout = '[{"id": 1}][{"id": 2}]'
+
+        def fake_run(command, **kwargs):
+            calls.append(command)
+            return Completed()
+        original = review.subprocess.run
+        review.subprocess.run = fake_run
+        try:
+            self.assertEqual(review.gh_api('repos/owner/app/issues/42/comments', paginate=True), [{'id': 1}, {'id': 2}])
+        finally:
+            review.subprocess.run = original
+        self.assertIn('--paginate', calls[0])
+        self.assertNotIn('--slurp', calls[0])
+
+    def test_help_works_without_label_assets(self):
+        import shutil
+        import subprocess
+        scripts = self.root / 'scripts'
+        shutil.copytree(SCRIPT.parent, scripts, ignore=lambda d, names: ['__pycache__'])
+        result = subprocess.run([sys.executable, str(scripts / 'review.py'), '--help'], capture_output=True, text=True)
+        self.assertEqual(result.returncode, 0, result.stderr)
 
     def test_remote_missing_url_never_posts(self):
         del self.report['cases'][0]['before']['url']

@@ -7,7 +7,7 @@ import sys
 import tempfile
 import unittest
 
-SCRIPT = Path(__file__).resolve().parents[1] / 'pr-visual-review/scripts/auth_config.py'
+SCRIPT = Path(__file__).resolve().parents[1] / 'skills/pr-visual-review/scripts/auth_config.py'
 spec = importlib.util.spec_from_file_location('auth_config', SCRIPT)
 auth = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(auth)

@@ -80,7 +80,7 @@ claude plugin install pr-visual-review@pr-visual-review-marketplace
 
 プラグインは手順と補助コードをまとめたものです。ブラウザ接続、Python、対象アプリの実行環境は導入されません。Git、Python **3.10以上**、アプリの依存関係、スクリーンショットを保存できるブラウザ連携が必要です。注釈付きPNGの書き出しにはPillowが必要です。HooksやMCPサーバーは同梱していません。
 
-初版のパッケージ検証対象はCodex CLI **0.158.0**、Claude Code **2.1.284**です。古いクライアントではコマンドが使えない場合があります。公開リポジトリから配布する独自カタログであり、各社の公式ディレクトリへの掲載を意味するものではありません。Windowsでの動作は未検証です。
+各リリースで動作確認したクライアントのバージョンは [CHANGELOG.md](CHANGELOG.md) に記載しています。古いクライアントではコマンドが使えない場合があります。公開リポジトリから配布する独自カタログであり、各社の公式ディレクトリへの掲載を意味するものではありません。Windowsでの動作は未検証です。
 
 ## 使い方
 
@@ -182,7 +182,7 @@ claude --plugin-dir .
 
 Codexでは `codex plugin marketplace add .` でcheckoutをローカルカタログとして登録できます。同じカタログ名のローカル版とGitHub版は同時に登録せず、切替やpullの前にローカルの変更を保存してください。
 
-Skillの実体は `skills/pr-visual-review/` に置き、キャッシュへのコピーでも読み込めるようにしています。公開時の手順は [プラグインの保守](docs/plugin-maintenance.md) を参照してください。
+Skillの実体は `skills/pr-visual-review/` に置き、キャッシュへのコピーでも読み込めるようにしています。公開時の手順は [CONTRIBUTING.md](CONTRIBUTING.md#リリース手順) を参照してください。
 
 ## 同梱内容
 

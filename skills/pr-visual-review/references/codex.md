@@ -11,4 +11,4 @@
 
 Codexアプリで実PRを確認する依頼なら、提供されているPR添付ツールでそのPRを現在のチャットへ関連付けます。これはGitHubへの画像投稿とは別です。最終報告のローカルファイルリンクには絶対パスを使います。
 
-Skillの配置はホストの探索仕様に従います。[OpenAI公式スキル文書](https://developers.openai.com/codex/skills) に記載された `.agents/skills/` をREADMEの導入例に使っています。特定の個人環境のパスを共有スキルへ埋め込みません。
+このSkillはプラグインとして導入します。READMEの `codex plugin marketplace add` / `codex plugin add` の手順に従い、呼び出し名は `$pr-visual-review` です。本文中の `<skill-dir>` は、プラグインキャッシュ内の `skills/pr-visual-review/` を指します。配置と探索の仕様は [OpenAI公式プラグイン文書](https://developers.openai.com/plugins/build/plugins) と [スキル文書](https://developers.openai.com/codex/skills) に従い、特定の個人環境のパスを共有スキルへ埋め込みません。

@@ -1,0 +1,29 @@
+name: Feature request
+description: Propose a change to the workflow, the report format, or the helpers.
+labels: [enhancement]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Japanese is fine too. / 日本語でも構いません。
+        Please share the goal and a concrete usage example before opening a large PR; see CONTRIBUTING.md.
+  - type: textarea
+    id: problem
+    attributes:
+      label: What is hard or impossible today?
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed behavior
+      description: Example request text and the output you would expect in report.json / report.md.
+    validations:
+      required: true
+  - type: textarea
+    id: guarantees
+    attributes:
+      label: Effect on the project's guarantees
+      description: |
+        This project refuses to invent evidence, posts only when asked, and never edits other people's comments.
+        Explain how the proposal keeps those properties, or why an exception is justified.

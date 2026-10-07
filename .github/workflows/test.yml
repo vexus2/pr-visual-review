@@ -1,0 +1,57 @@
+name: Tests
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    name: Python ${{ matrix.python-version }}${{ matrix.pillow && ' + Pillow' || ' (stdlib only)' }}
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ['3.10', '3.12']
+        pillow: [true]
+        include:
+          # The core helpers must work without the optional PNG dependency.
+          - python-version: '3.10'
+            pillow: false
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Install optional Pillow
+        if: ${{ matrix.pillow }}
+        run: python -m pip install -r skills/pr-visual-review/requirements-annotations.txt
+
+      - name: Byte-compile helpers
+        run: python -m compileall -q skills/pr-visual-review/scripts
+
+      - name: Validate the bundled login recipe example
+        run: python skills/pr-visual-review/scripts/auth_config.py skills/pr-visual-review/templates/auth.example.json
+
+      - name: Unit tests
+        run: python -m unittest discover -s tests -v
+
+      - name: Checked-in demo report regenerates identically
+        run: |
+          python skills/pr-visual-review/scripts/review.py render examples/demo/report.annotated.json | diff - examples/demo/report.md
+          python skills/pr-visual-review/scripts/review.py render examples/demo/report.annotated.json --format html | diff - examples/demo/report.html
+
+  manifests:
+    name: Plugin manifests are valid JSON
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: |
+          for file in plugin.json .codex-plugin/plugin.json .claude-plugin/plugin.json .claude-plugin/marketplace.json .agents/plugins/marketplace.json; do
+            python -m json.tool "$file" > /dev/null || exit 1
+          done

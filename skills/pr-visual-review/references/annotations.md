@@ -67,4 +67,6 @@ python3 /ABS/SKILL/scripts/review.py render /ABS/RUN/report.annotated.json --for
 
 Markdown/投稿の生成時には、元画像・注釈内容・派生PNGのハッシュを再照合します。変更があれば再exportしてください。HTMLのCSS表示は常に現在の原画像と領域を使います。
 
+照合に使うfingerprintには、枠の座標・番号・種類だけでなく `label` と対応する `issues` の本文も含まれます。PNGに描かれるのは番号と種類だけですが、説明文を直した場合も再exportが必要です。古い説明に対応していたPNGをそのまま掲載しないための、意図的に厳しい設計です。
+
 PRへ掲載するときは、原画像のurlに加え、枠を付けた各sideの `annotated_url` も設定します。必要なPNG/URLが不足している場合は投稿前に停止します。再exportでは古いannotated_urlを引き継がないため、生成後にアップロード先を設定してください。

@@ -80,7 +80,7 @@ The examples below use the Codex skill name `$pr-visual-review`. In Claude Code,
 
 The plugin packages the workflow; it does not install a browser connection, Python, or your app's runtime. You need Git, Python **3.10+**, your app's dependencies, and a browser tool that can export screenshots. Annotated PNG export also requires optional Pillow. No hooks or MCP servers are bundled.
 
-The initial packaging targets Codex CLI **0.158.0** and Claude Code **2.1.284**. Older clients may not support these commands. This is a public repository marketplace, not an official directory listing from either vendor. Windows operation has not been verified.
+The client versions each release was checked against are listed in [CHANGELOG.md](CHANGELOG.md). Older clients may not support these commands. This is a public repository marketplace, not an official directory listing from either vendor. Windows operation has not been verified.
 
 ## Choose what to review
 
@@ -194,7 +194,7 @@ claude --plugin-dir .
 
 For Codex, add the checkout as a local marketplace with `codex plugin marketplace add .`. Local development sources and GitHub sources with the same marketplace name should not be registered simultaneously. Save your local changes before switching sources or pulling updates.
 
-The workflow lives in `skills/pr-visual-review/` as real files so plugin caches can load it. See [plugin maintenance](docs/plugin-maintenance.md) for packaging and release steps.
+The workflow lives in `skills/pr-visual-review/` as real files so plugin caches can load it. Packaging and release steps are in [CONTRIBUTING.md](CONTRIBUTING.md#リリース手順).
 
 ## Contribute
 

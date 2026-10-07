@@ -7,6 +7,7 @@ infer visual findings. `publish` is a dry run unless --execute is supplied.
 
 import argparse
 from datetime import datetime
+from functools import lru_cache
 import html
 import ipaddress
 import json
@@ -31,11 +32,17 @@ PRIORITIES = {'required': 'PRで要対応', 'optional': '任意改善', 'investi
 AUTH_MODES = {'existing-session': '既存セッション', 'form': '通常ログイン',
               'manual': 'ユーザーによるログイン', 'fixture': '開発用fixture', 'none': 'ログイン不要'}
 AUTH_STATES = {'verified': '確認済み', 'unverified': '未確認', 'not-required': '不要'}
-EN_LABELS = json.loads((Path(__file__).resolve().parents[1] / 'assets/labels.en.json').read_text(encoding='utf-8'))
+SKILL_DIR = Path(__file__).resolve().parents[1]
+
+
+@lru_cache(maxsize=None)
+def english_labels():
+    """Loaded on first use so `--help` and validation do not depend on the asset file."""
+    return json.loads((SKILL_DIR / 'assets/labels.en.json').read_text(encoding='utf-8'))
 
 
 def translate(report, text):
-    return EN_LABELS.get(text, text) if report.get('language', 'ja') == 'en' else text
+    return english_labels().get(text, text) if report.get('language', 'ja') == 'en' else text
 
 
 def authentication_text(report):
@@ -344,7 +351,7 @@ def render_html(report, root, remote):
     """Called only after validation; no scripts, network assets, or Markdown parsing."""
     esc = lambda value: html.escape(str(value), quote=True)
     t = lambda value: translate(report, value)
-    css = (Path(__file__).resolve().parents[1] / 'assets/report.css').read_text(encoding='utf-8')
+    css = (SKILL_DIR / 'assets/report.css').read_text(encoding='utf-8')
 
     def figure(capture, side, title, detail=False, case=None):
         label = side + (' / ' + t('詳細') if detail else '')
@@ -423,10 +430,25 @@ def render_html(report, root, remote):
             f'<footer>{t("記載した画面・状態だけを確認しています。全画面の回帰がないことは保証しません。")}</footer></main></body></html>\n')
 
 
+def json_documents(text):
+    """Parse concatenated JSON documents, which is how `gh api --paginate` prints pages."""
+    decoder = json.JSONDecoder()
+    documents = []
+    index = 0
+    while True:
+        while index < len(text) and text[index].isspace():
+            index += 1
+        if index >= len(text):
+            return documents
+        document, index = decoder.raw_decode(text, index)
+        documents.append(document)
+
+
 def gh_api(endpoint, method='GET', payload=None, paginate=False):
     command = ['gh', 'api', '--hostname', 'github.com', '--method', method, endpoint]
     if paginate:
-        command += ['--paginate', '--slurp']
+        # No --slurp: it needs a newer gh than --paginate, and the pages are easy to join here.
+        command.append('--paginate')
     if payload is not None:
         command += ['--input', '-']
     result = subprocess.run(command, input=json.dumps(payload) if payload is not None else None,
@@ -434,8 +456,11 @@ def gh_api(endpoint, method='GET', payload=None, paginate=False):
     if result.returncode:
         # Do not print API response bodies: they can contain source/customer data.
         raise RuntimeError(f'gh API {method} {endpoint} failed (exit {result.returncode}); check gh auth/permissions')
-    data = json.loads(result.stdout)
-    return [item for page in data for item in page] if paginate else data
+    if not paginate:
+        return json.loads(result.stdout)
+    pages = json_documents(result.stdout)
+    require(all(isinstance(page, list) for page in pages), f'gh API {endpoint}: expected list pages')
+    return [item for page in pages for item in page]
 
 
 def publish(report, root, execute=False, images_reviewed=False, api=None):
@@ -455,7 +480,8 @@ def publish(report, root, execute=False, images_reviewed=False, api=None):
     check_head()
     user_id = api('user')['id']
     comments = api(comments_endpoint, paginate=True)
-    owned = [c for c in comments if c.get('user', {}).get('id') == user_id
+    # `user` is null for comments whose author account no longer exists.
+    owned = [c for c in comments if (c.get('user') or {}).get('id') == user_id
              and (c.get('body') or '').splitlines()[:1] == [marker(report)]]
     require(len(owned) <= 1, 'multiple owned review comments found; resolve ambiguity before publishing')
     action = 'update' if owned else 'create'

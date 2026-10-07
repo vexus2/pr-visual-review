@@ -1,0 +1,58 @@
+name: Bug report
+description: Something in the skill, the helper scripts, or the packaging did not behave as documented.
+labels: [bug]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for the report. Japanese is fine too. / 日本語でも構いません。
+
+        **Do not paste secrets.** No API keys, cookies, passwords, customer data, or screenshots/source from private PRs.
+        Reproduce with the bundled fixture (`python3 tests/demo_server.py`) or a minimal app whenever possible.
+  - type: input
+    id: version
+    attributes:
+      label: Plugin version or commit
+      placeholder: 0.1.2 / abc1234
+    validations:
+      required: true
+  - type: input
+    id: host
+    attributes:
+      label: AI host, browser, OS, Python
+      placeholder: Codex CLI 0.158.0 / Chrome 140 / macOS 15 / Python 3.12
+    validations:
+      required: true
+  - type: textarea
+    id: request
+    attributes:
+      label: What you asked the agent to do
+      description: The request text, including device scope (desktop/mobile), login mode, and whether PR posting was requested.
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected result
+    validations:
+      required: true
+  - type: textarea
+    id: actual
+    attributes:
+      label: Actual result and reproduction steps
+      description: Include the helper command and its stderr if a script failed. Redacted report.json excerpts are welcome.
+    validations:
+      required: true
+  - type: dropdown
+    id: layer
+    attributes:
+      label: Where do you think the problem is?
+      options:
+        - Skill instructions (SKILL.md / references)
+        - review.py (validation, rendering, publishing)
+        - auth_config.py
+        - Plugin packaging or installation
+        - My environment (browser tool, gh, app runtime)
+        - Not sure
+    validations:
+      required: true

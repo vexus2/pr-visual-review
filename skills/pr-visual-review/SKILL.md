@@ -117,7 +117,8 @@ and the final answer. Link local artifacts in that answer.
 
 Follow [publishing.md](references/publishing.md) for actual image upload and
 verified comment creation/update. The helper never uploads images. No available
-uploader means retain local artifacts and report “PR掲載だけ未完了”. Do not post
+uploader means retain local artifacts and report that only the PR publication
+step is incomplete. Do not post
 broken local-path images or say that preparing Markdown completed publication.
 
 ## 6. Finish
