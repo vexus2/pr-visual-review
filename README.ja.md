@@ -46,27 +46,34 @@ Beforeは375px内に収まっています。Afterはページ幅が616pxにな�
 
 ## 導入
 
-`pr-visual-review/` ディレクトリ全体をインストールします。SKILL.mdだけをコピーしないでください。既存の同名スキルがある場合は、上書きせず内容を比較してください。
-
-macOS / Linuxの例です。Python 3.10以上・Git・ブラウザ連携が必要です。対象アプリ固有のruntimeも用意してください。
+確認したいプロジェクトのディレクトリで実行します。
 
 ```bash
-mkdir -p ~/src
-git clone https://github.com/vexus2/pr-visual-review.git ~/src/pr-visual-review
-cd ~/src/pr-visual-review
-
-# Codex: cloneしたSkillの実体を参照します。既存リンクは上書きしません。
-mkdir -p ~/.agents/skills
-ln -s "$PWD/pr-visual-review" ~/.agents/skills/pr-visual-review
-
-# Claude Codeで使う場合はこちらも実行
-mkdir -p ~/.claude/skills
-ln -s "$PWD/pr-visual-review" ~/.claude/skills/pr-visual-review
+npx skills add vexus2/pr-visual-review --skill pr-visual-review
 ```
 
-リンクを使わない場合はSkillディレクトリ全体をコピーしても使えます。対象プロジェクトだけで使う場合はそれぞれ `.agents/skills/`、`.claude/skills/` に配置します。新しいセッションで検出を確認してください。コピーの場合の更新は手動です。Windowsでの導入手順は未検証です。
+[skills CLI](https://github.com/vercel-labs/skills)が必要なファイルの取得と配置を行います。エージェントの選択を求められたら利用するものを選んでください。明示的に指定することもできます。
 
-配置仕様: [OpenAI Skills](https://developers.openai.com/codex/skills)、[Claude Code Skills](https://code.claude.com/docs/en/skills)。ブラウザ: [Claude Code Chrome連携](https://code.claude.com/docs/en/chrome)。Codexではそのセッションにあるブラウザツールを使います。
+```bash
+# Codex
+npx skills add vexus2/pr-visual-review --skill pr-visual-review -a codex
+
+# Claude Code
+npx skills add vexus2/pr-visual-review --skill pr-visual-review -a claude-code
+```
+
+両方なら `-a codex -a claude-code` を指定します。`-g` を付けるとユーザー共通の導入先、付けなければ現在のプロジェクト内に配置されます。手動のcloneやシンボリックリンク作成は不要です。
+
+インストーラーにはNode.jsとGitが必要です。検証したskills CLI 1.7.1はNode.js **22.20.0以上**を要求します。Skillの実行にはPython **3.10以上**、対象アプリの実行環境、ブラウザ操作と画像保存ができる連携が必要です。注釈PNGの書出しには追加でPillowを使います。これらの環境やブラウザ接続はインストーラーでは設定されません。
+
+Codexでは組み込みのインストーラーにも依頼できます。
+
+```text
+$skill-installer 次のURLのSkillをインストールしてください。
+https://github.com/vexus2/pr-visual-review/tree/main/pr-visual-review
+```
+
+新しいセッションで、Codexなら `$pr-visual-review`、Claude Codeなら `/pr-visual-review` を使います。公式の [Codex Skills](https://developers.openai.com/codex/skills) と [Claude Code Skills](https://code.claude.com/docs/en/skills) も参照してください。ローカル導入はmacOSで検証済みです。Windowsでの導入は未検証です。
 
 ## 使い方
 
@@ -149,13 +156,43 @@ python3 /ABS/SKILL/scripts/review.py render /ABS/RUN/report.annotated.json > /AB
 
 ## 更新
 
-シンボリックリンクで導入した場合は、clone先を更新します。
+**GitHub側で更新しても、インストール済みのファイルには自動反映されません。** skills CLIで導入した場合は、次のコマンドで更新します。
+
+```bash
+# 導入したプロジェクトのディレクトリで実行
+npx skills update pr-visual-review --project
+
+# -gで導入した場合
+npx skills update pr-visual-review --global
+```
+
+インストーラーが作るシンボリックリンクは、GitHubではなく利用者のローカルコピーを参照します。上のコマンドで公開元の更新を取得します。インストール先のファイルは置き換わることがあるので、独自の改修はforkや開発用checkoutで管理してください。
+
+Codexの組み込みインストーラーや手動コピーで配置したものは、skills CLIの更新対象として登録されていない場合があります。ローカルの変更を確認したうえで、導入に使った方法で新版へ置き換えてください。
+
+ファイルを更新した後は、実行中のエージェントに「SKILL.mdと参照ファイルをディスクから読み直して」と依頼するか、新しいセッションを開きます。ファイルの更新と、読み込み済み手順の再読み込みは別です。別マシンの導入先もそれぞれ更新が必要です。
+
+## Skill自体を開発する場合
+
+Skillを改修する場合は、cloneした作業フォルダをリンクする方法が便利です。上の一般利用者向け手順とは別の導入方法なので、既存の配置を上書きしないでください。macOS / Linuxの例です。
+
+```bash
+mkdir -p ~/src
+git clone https://github.com/vexus2/pr-visual-review.git ~/src/pr-visual-review
+cd ~/src/pr-visual-review
+
+mkdir -p ~/.agents/skills ~/.claude/skills
+ln -s "$PWD/pr-visual-review" ~/.agents/skills/pr-visual-review
+ln -s "$PWD/pr-visual-review" ~/.claude/skills/pr-visual-review
+```
+
+この作業フォルダで行った編集は、リンク先からもすぐに見えます。ただしGitHub側の変更を取り込むには、次の操作が必要です。
 
 ```bash
 git -C ~/src/pr-visual-review pull --ff-only
 ```
 
-ローカルで改修している場合は差分を確認し、競合や変更を強制破棄しないでください。同じ実体を参照する別セッションにもファイルの変更が反映されます。既に手順を読み込んだセッションには「SKILL.mdと参照ファイルをディスクから読み直して」と依頼してください。別マシンのcloneやコピー配置は別途更新が必要です。
+ローカルの差分を確認してから実行し、更新のために変更を強制破棄しないでください。開発用のリンクに対してskills CLIで上書きインストールすることは避けてください。スクリプト・参照文書・assets・依存定義を含むSkillディレクトリ全体が必要です。
 
 ## 同梱内容
 

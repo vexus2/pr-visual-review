@@ -46,27 +46,34 @@ Blue frames mark changes, red frames mark issues, and gray frames show the Befor
 
 ## Install
 
-You need Git, Python **3.10+**, your app's runtime, and an agent environment that can control a browser and export screenshots. Installing this skill does not install a browser connection.
-
-macOS / Linux example:
+Run this in the project you want to review:
 
 ```bash
-mkdir -p ~/src
-git clone https://github.com/vexus2/pr-visual-review.git ~/src/pr-visual-review
-cd ~/src/pr-visual-review
-
-# Codex
-mkdir -p ~/.agents/skills
-ln -s "$PWD/pr-visual-review" ~/.agents/skills/pr-visual-review
-
-# Claude Code
-mkdir -p ~/.claude/skills
-ln -s "$PWD/pr-visual-review" ~/.claude/skills/pr-visual-review
+npx skills add vexus2/pr-visual-review --skill pr-visual-review
 ```
 
-Do not overwrite an existing skill without inspecting it. You can also copy the entire `pr-visual-review/` directory, or install it in a project's `.agents/skills/` or `.claude/skills/`. Copies need manual updates. Windows installation has not been verified.
+The [skills CLI](https://github.com/vercel-labs/skills) downloads and installs the skill files. Select your agent if prompted, or choose explicitly:
 
-Open a new session and invoke `$pr-visual-review` in Codex or `/pr-visual-review` in Claude Code. See the official [Codex skill documentation](https://developers.openai.com/codex/skills) and [Claude Code skill documentation](https://code.claude.com/docs/en/skills).
+```bash
+# Codex
+npx skills add vexus2/pr-visual-review --skill pr-visual-review -a codex
+
+# Claude Code
+npx skills add vexus2/pr-visual-review --skill pr-visual-review -a claude-code
+```
+
+Use `-a codex -a claude-code` to install for both. Add `-g` for a user-wide installation; without it, the installation belongs to the current project. No manual clone or symlink setup is needed.
+
+The installer needs Node.js and Git. The verified CLI version, `skills` 1.7.1, requires Node.js **22.20.0+**. Running the skill needs Python **3.10+**, your app's runtime, and an agent environment that can control a browser and export screenshots. Annotated PNG export also needs the optional Pillow dependency. The installer does not set up these runtimes or a browser connection.
+
+Codex users can also ask the built-in installer:
+
+```text
+$skill-installer Install the skill from
+https://github.com/vexus2/pr-visual-review/tree/main/pr-visual-review
+```
+
+Open a new session and invoke `$pr-visual-review` in Codex or `/pr-visual-review` in Claude Code. See the official [Codex skill documentation](https://developers.openai.com/codex/skills) and [Claude Code skill documentation](https://code.claude.com/docs/en/skills). Local installation was verified on macOS; Windows installation has not been verified.
 
 ## Choose what to review
 
@@ -161,13 +168,43 @@ Pixel diffs, CI orchestration, GitHub Enterprise, and a dedicated Safari driver 
 
 ## Update
 
-For a symlink installation:
+**Publishing a change on GitHub does not automatically update an installed copy.** For a skills CLI installation, run:
+
+```bash
+# From the project where you installed it
+npx skills update pr-visual-review --project
+
+# If you installed it with -g
+npx skills update pr-visual-review --global
+```
+
+The installer may use symlinks, but they point to a local copy, not to GitHub. These commands fetch available upstream updates. Updates can replace installed files; keep your own changes in a fork or a development checkout.
+
+If you used Codex's built-in installer or copied the folder manually, the skills CLI may not track that installation. Use the same installation method to replace it with the newer version after checking any local changes.
+
+After updating files, ask an active agent to reread SKILL.md and its references, or start a new session. Updating the files and refreshing an agent's already-loaded instructions are separate steps. Installations on other machines also need updating.
+
+## Developing the skill
+
+Clone and symlink when you want to edit the skill itself. This is an alternative to the user installation above; do not overwrite an existing installation. macOS / Linux example:
+
+```bash
+mkdir -p ~/src
+git clone https://github.com/vexus2/pr-visual-review.git ~/src/pr-visual-review
+cd ~/src/pr-visual-review
+
+mkdir -p ~/.agents/skills ~/.claude/skills
+ln -s "$PWD/pr-visual-review" ~/.agents/skills/pr-visual-review
+ln -s "$PWD/pr-visual-review" ~/.claude/skills/pr-visual-review
+```
+
+Local edits to this checkout are immediately visible through those links. Remote changes still need to be fetched:
 
 ```bash
 git -C ~/src/pr-visual-review pull --ff-only
 ```
 
-Review local changes before updating. Do not discard edits to force an update. Sessions that already loaded the skill should be asked to reread SKILL.md and its references. Copies and installations on other machines need separate updates.
+Review local changes before pulling; do not discard edits to force an update. Avoid running the skills CLI installer over your development links. The full skill directory is required, including its scripts, references, assets, and dependency file.
 
 ## Contribute
 
