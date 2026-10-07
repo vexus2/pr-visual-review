@@ -283,6 +283,13 @@ def validate(report, root, remote=False):
                 text_field(capture, 'note')
                 require(not any(key in capture for key in ('image', 'url', 'detail_image', 'detail_url')),
                         'absent/unverified state cannot carry a comparison image')
+        if 'composite_image' in case:
+            require(states == ['captured', 'captured'], 'a composite needs both captures')
+            image_path(case['composite_image'], root)
+            if remote:
+                require(isinstance(case.get('composite_url'), str) and bool(case['composite_url']),
+                        'composite_url missing: upload the Before/After/Diff PNG before publishing')
+                image_url(case['composite_url'])
         if 'unverified' in states:
             require(case['result'] == 'unverified', 'an unverified side requires result=unverified')
         if case['result'] == 'unchanged':
@@ -324,7 +331,10 @@ def capture_cell(case, side, root, remote, report):
     if image_annotations.marks(case, side.lower()):
         image_annotations.verify_derivative(case, side.lower(), root)
         local = image_path(capture['annotated_image'], root)
-        marked = image_url(capture.get('annotated_url')) if remote else local
+        if remote:
+            require(isinstance(capture.get('annotated_url'), str) and bool(capture['annotated_url']),
+                    f'annotated_url missing for {side}: upload the annotated PNG before publishing')
+        marked = image_url(capture['annotated_url']) if remote else local
         cell = f"![{side} ({t('注釈付き')})](<{marked}>)<br>[{t('原画像')}](<{url}>)"
     else:
         cell = f'![{side}](<{url}>)'
@@ -334,13 +344,30 @@ def capture_cell(case, side, root, remote, report):
     return cell
 
 
-def case_block(case, report, root, remote, heading):
-    """Heading, image pair, one-line finding, and issue lines. Everything else goes to the details block."""
+def composite_block(case, report, root, remote):
+    """One Before/After/Diff image plus links to the untouched originals."""
     t = lambda value: translate(report, value)
-    lines = [f"{heading} {safe_text(case['title'])} — {t(RESULTS[case['result']])}", '',
-             '| Before | After |', '| --- | --- |',
-             f"| {capture_cell(case, 'Before', root, remote, report)} | {capture_cell(case, 'After', root, remote, report)} |", '',
-             safe_text(case['finding']), '']
+    image_annotations.verify_composite(case, root)
+    src = image_url(case.get('composite_url')) if remote else image_path(case['composite_image'], root)
+    originals = []
+    for side in ('Before', 'After'):
+        capture = case[side.lower()]
+        originals.append(f"[{side}](<{image_url(capture['url']) if remote else image_path(capture['image'], root)}>)")
+        if 'detail_image' in capture:
+            originals.append(f"[{side} {t('拡大')}](<{image_url(capture['detail_url']) if remote else image_path(capture['detail_image'], root)}>)")
+    return [f'![Before / After / Diff](<{src}>)', '', f"{t('原画像')}: " + ' · '.join(originals), '']
+
+
+def case_block(case, report, root, remote, heading):
+    """Heading, images, one-line finding, and issue lines. Everything else goes to the details block."""
+    t = lambda value: translate(report, value)
+    lines = [f"{heading} {safe_text(case['title'])} — {t(RESULTS[case['result']])}", '']
+    if 'composite_image' in case:
+        lines += composite_block(case, report, root, remote)
+    else:
+        lines += ['| Before | After |', '| --- | --- |',
+                  f"| {capture_cell(case, 'Before', root, remote, report)} | {capture_cell(case, 'After', root, remote, report)} |", '']
+    lines += [safe_text(case['finding']), '']
     for issue in case.get('issues', []):
         lines.append(f"- **{t(PRIORITIES[issue['priority']])}** · {t(ORIGINS[issue['origin']])}: {safe_text(issue['summary'])}")
     if case.get('issues'):
@@ -352,6 +379,8 @@ def details_block(report, root, remote):
     """Everything a reviewer needs to reproduce or audit, collapsed once at the end."""
     t = lambda value: translate(report, value)
     lines = ['<details>', f"<summary>{t('確認条件・未確認事項')}</summary>", '']
+    if any('composite_image' in case for case in report['cases']):
+        lines += [t('Diff欄は行を対応付けたうえでの自動表示です。青帯は追加された行、赤は変わった画素、灰色の印は削除された行の位置を示します。所見は画像を確認して書いています。'), '']
     annotated = [case for case in report['cases'] if case.get('annotations')]
     if annotated:
         lines += [f"**{t('注釈')}** — {t('灰色はBeforeの参照箇所、青は変更、赤は問題です。番号は説明と対応します。')}", '']
@@ -454,8 +483,14 @@ def render_html(report, root, remote):
             f'<p>{esc(i["summary"])}</p><p>{t("根拠")}: {esc(i["evidence"])}</p><p>{t("影響")}: {esc(i["impact"])}</p></li>'
             for i in case.get('issues', []))
         details = ''
+        if 'composite_image' in case:
+            image_annotations.verify_composite(case, root)
+            composite_src = image_url(case.get('composite_url')) if remote else image_path(case['composite_image'], root)
+            details += (f'<details class="details-images"><summary>{t("Before / After / Diff の合成画像")}</summary>'
+                        f'<p class="muted">{t("Diff欄は行を対応付けたうえでの自動表示です。青帯は追加された行、赤は変わった画素、灰色の印は削除された行の位置を示します。所見は画像を確認して書いています。")}</p>'
+                        f'<a class="image-frame" href="{esc(composite_src)}"><img src="{esc(composite_src)}" loading="lazy" alt="{title} — Before / After / Diff"></a></details>')
         if any('detail_image' in case[s] for s in ('before', 'after')):
-            details = (f'<details class="details-images"><summary>{t("変更箇所の詳細を開く")}</summary><div class="pair">' +
+            details += (f'<details class="details-images"><summary>{t("変更箇所の詳細を開く")}</summary><div class="pair">' +
                        figure(case['before'], 'Before', case['title'], True) +
                        figure(case['after'], 'After', case['title'], True) + '</div></details>')
         context = ''.join(f'<p>{esc(line)}</p>' for line in case_context(case, report))
@@ -593,15 +628,17 @@ def main():
             require(not args.out.is_symlink() and args.out.parent.resolve() == args.report.parent.resolve(), 'save the derived JSON beside the original')
             require(args.out.suffix.lower() == '.json', 'annotation report output must be a JSON file')
             for case in report['cases']:
-                for side in ('before', 'after'):
-                    for key in ('image', 'detail_image', 'annotated_image'):
-                        if key in case[side]:
-                            source = args.report.parent / case[side][key]
-                            require(args.out.resolve() != source.resolve() and not (args.out.exists() and source.exists() and args.out.samefile(source)),
-                                    'annotation report must not overwrite a screenshot')
+                sources = [case[side][key] for side in ('before', 'after') for key in ('image', 'detail_image', 'annotated_image')
+                           if key in case[side]] + ([case['composite_image']] if 'composite_image' in case else [])
+                for relative in sources:
+                    source = args.report.parent / relative
+                    require(args.out.resolve() != source.resolve() and not (args.out.exists() and source.exists() and args.out.samefile(source)),
+                            'annotation report must not overwrite a screenshot')
             output = annotate(report, args.report.parent)
             args.out.write_text(json.dumps(output, ensure_ascii=False, indent=2) + '\n', encoding='utf-8')
-            print(json.dumps({'report': str(args.out), 'annotated_sides': sum(bool(image_annotations.marks(c, s)) for c in report['cases'] for s in ('before','after'))}))
+            print(json.dumps({'report': str(args.out),
+                              'annotated_sides': sum(bool(image_annotations.marks(c, s)) for c in output['cases'] for s in ('before', 'after')),
+                              'composites': sum('composite_image' in c for c in output['cases'])}))
         else:
             print(json.dumps(publish(report, args.report.parent, args.execute, args.images_reviewed), ensure_ascii=False, indent=2))
     except (OSError, ValueError, KeyError, TypeError, RuntimeError) as error:

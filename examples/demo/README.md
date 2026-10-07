@@ -9,7 +9,7 @@ This example demonstrates the output of PR Visual Review with a small, intention
 3. Four screenshots were exported without editing. The mobile document width and Save button bounds were read from the rendered DOM; see [metrics.json](metrics.json).
 4. Save changes was clicked on desktop. The fixture prevents submission and has no backend, so the success state was recorded as **not verified**, not passed.
 5. Regions were selected on the saved images: blue around the new desktop controls, gray around the Before Save button, and red at the clipped right edge in After. The off-screen button itself was not drawn into the image.
-6. The standard helper exported separate PNGs and [report.annotated.json](report.annotated.json), then rendered [Markdown](report.md) and [HTML](report.html). The README overview image is a Chrome screenshot of that HTML.
+6. The standard helper exported one Before / After / Diff PNG per compared case into `annotated/` and wrote [report.annotated.json](report.annotated.json), then rendered [Markdown](report.md) and [HTML](report.html). The README overview image is a Chrome screenshot of that HTML.
 
 The expected desktop addition is the email notification panel. The deliberate mobile defect is a fixed-width form that moves Save changes outside the viewport. The fixture must remain broken to reproduce the finding.
 

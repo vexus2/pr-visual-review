@@ -11,6 +11,12 @@ AIが原画像を確認して選んだ領域に、枠と番号を重ねます。
 
 原画像は上書きしません。HTMLは原画像の上にCSSの枠を重ね、注釈なし表示と原画像リンクも残します。Markdown/GitHubは別に書き出したPNGと原画像リンクを使います。PNGには番号とCHANGE/ISSUE/REFの短いラベルを載せ、番号ごとの説明（label）はMarkdownでは末尾の折りたたみ、HTMLでは画像の下に表示します。
 
+## Before / After / Diff の合成画像
+
+前後とも撮影できたケースでは、`annotate` が Before、After、Diff を1枚に並べたPNGを `annotated/<case-id>-composite-<hash>.png` に書き出します。原画像の幅が600px以下なら横並び、それより広ければ縦並びです。BeforeとAfterの面には上記の枠を描き、Diff面には描きません。MarkdownとPRコメントはこの1枚を表示し、原画像へのリンクを添えます。片側しか撮影できないケースには合成を作らず、枠のある側だけ注釈付きPNGを書き出します。
+
+Diff面は、前後の画像を行単位で対応付けてから差分を取ります。追加された行は青帯と左端の青い印、対応する行の中で変わった画素は赤、削除された行の位置は左端の灰色の印で示します。見出し追加などで下にずれただけの内容は赤になりません。フォーム幅が変わって全体が組み直された場合は、ほぼ全面が赤になります。これは「全体が変わった」という事実の表示で、不具合の判定ではありません。所見は原画像と合成画像を目で確認して書き、Diff面の赤い面積を根拠にしません。
+
 ## 座標の決め方
 
 保存した画像を開き、表示上の幅W・高さHに対して矩形を指定します。`x=左端/W`、`y=上端/H`、`width=領域幅/W`、`height=領域高/H`。値は0〜1です。EXIF回転がある場合は回転後の表示を基準にします。
@@ -63,10 +69,10 @@ python3 /ABS/SKILL/scripts/review.py render /ABS/RUN/report.annotated.json --for
 
 環境の依存導入ルールに従ってください。Pillowを導入できない場合も、`render report.json --format html`で注釈を表示できます。PNGがないままMarkdownを「注釈付き」として出力・投稿しません。
 
-`annotate`は原JSONを変更せず、同じディレクトリの別JSONへ保存します。画像は `annotated/` にPNGとして書き出します。元画像や領域が変わると異なるファイル名になります。派生JSONのannotated_image・annotated_sha256・annotation_fingerprintはヘルパーが設定する値なので、手で書き換えません。PNGは透明度を保持し、EXIFの回転に従います。原画像は変更しません。
+`annotate`は原JSONを変更せず、同じディレクトリの別JSONへ保存します。画像は `annotated/` にPNGとして書き出します。元画像や領域が変わると異なるファイル名になります。派生JSONの `annotated_image`・`annotated_sha256`・`annotation_fingerprint` と、ケース直下の `composite_image`・`composite_sha256`・`composite_fingerprint` はヘルパーが設定する値なので、手で書き換えません。PNGは透明度を保持し、EXIFの回転に従います。原画像は変更しません。
 
 Markdown/投稿の生成時には、元画像・注釈内容・派生PNGのハッシュを再照合します。変更があれば再exportしてください。HTMLのCSS表示は常に現在の原画像と領域を使います。
 
 照合に使うfingerprintには、枠の座標・番号・種類だけでなく `label` と対応する `issues` の本文も含まれます。PNGに描かれるのは番号と種類だけですが、説明文を直した場合も再exportが必要です。古い説明に対応していたPNGをそのまま掲載しないための、意図的に厳しい設計です。
 
-PRへ掲載するときは、原画像のurlに加え、枠を付けた各sideの `annotated_url` も設定します。必要なPNG/URLが不足している場合は投稿前に停止します。再exportでは古いannotated_urlを引き継がないため、生成後にアップロード先を設定してください。
+PRへ掲載するときは、原画像のurlに加え、合成画像のあるケースにはケース直下の `composite_url`、注釈付きPNGのあるsideには `annotated_url` を設定します。必要なPNG/URLが不足している場合は投稿前に停止します。再exportでは古いURLを引き継がないため、生成後にアップロード先を設定してください。

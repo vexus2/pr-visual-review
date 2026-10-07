@@ -112,11 +112,14 @@ Combine only the requested desktop/mobile and browsers as separate cases in one 
 with per-case browser/conditions overrides. Publish that complete report once;
 separate publications replace the entire prior comment. Do not mix head SHAs.
 
-When annotations exist, run `python3 <skill-dir>/scripts/review.py annotate
-<run-dir>/report.json --out <run-dir>/report.annotated.json`. Inspect the exported
-PNGs, and use that derived JSON for rendering and publication. Export requires
-optional Pillow; if unavailable, retain annotated HTML and report the PNG/PR
-step as incomplete. HTML draws overlays without Pillow.
+Run `python3 <skill-dir>/scripts/review.py annotate <run-dir>/report.json --out
+<run-dir>/report.annotated.json`. It writes one Before / After / Diff PNG per case
+with both captures (frames included) and an annotated PNG for marked sides of
+single-capture cases. Open every exported PNG and check that the frames sit on the
+intended regions and the Diff panel is readable; it is an aid for the reader, never
+a source of findings. Use the derived JSON for rendering and publication. Export
+requires optional Pillow; if unavailable, retain annotated HTML and report the
+PNG/PR step as incomplete. HTML draws overlays without Pillow.
 
 Run `python3 <skill-dir>/scripts/review.py render <run-dir>/report.annotated.json`
 and save stdout as `<run-dir>/report.md`. Also run the same command with

@@ -19,7 +19,7 @@
 
 case は `id`（一意の小文字slug）、`title`、`route`、`reason`（コード/参照関係による選定根拠）、`steps`（同じ状態に到達する操作の配列）、`result`、`finding`、`before`、`after` を持ちます。v2では以下も必須です。
 
-画像内の位置を示す場合はcaseへ `annotations` を追加します。[注釈の仕様と書出し手順](annotations.md)を参照してください。原画像のx/y/width/heightを0〜1に正規化し、枠・番号・説明を対応させます。旧レポートの注釈なし表示も引き続き使えます。
+画像内の位置を示す場合はcaseへ `annotations` を追加します。[注釈の仕様と書出し手順](annotations.md)を参照してください。原画像のx/y/width/heightを0〜1に正規化し、枠・番号・説明を対応させます。旧レポートの注釈なし表示も引き続き使えます。`annotate` が書き出す派生JSONには、前後とも撮影したcaseに `composite_image` / `composite_sha256` / `composite_fingerprint`（投稿時は `composite_url`）が、片側だけのcaseの枠付きsideに `annotated_image` 等が入ります。
 
 ```json
 {

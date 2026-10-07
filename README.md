@@ -38,11 +38,9 @@ This public demo uses a small local app with an intentional mobile regression. T
 
 The Before screen fits within 375px. In After, the document is 616px wide and the Save button starts beyond the viewport. The report separates this regression from the expected addition of notification controls.
 
-| Before: Save is visible | After: Save is off-screen |
-| --- | --- |
-| ![Before at 375px: settings and Save changes fit on screen](examples/demo/annotated/sp-settings-before-5f6ac524a6bc9878.png) | ![After at 375px: the form overflows and Save changes is outside the viewport](examples/demo/annotated/sp-settings-after-a8d1362c51f45923.png) |
+![Before, After and Diff at 375px: Save is visible in Before, the form overflows in After, and the Diff panel shows the whole layout changed](examples/demo/annotated/sp-settings-composite-c7474234b1cf434b.png)
 
-Blue frames mark changes, red frames mark issues, and gray frames show the Before reference. Numbers connect each frame to its explanation. The AI chooses the regions after inspecting the images; this is not automatic pixel-diff detection. Original captures: [Before](examples/demo/images/sp-before.jpg) · [After](examples/demo/images/sp-after.jpg).
+Each case is one image. Before and After carry the AI's frames: blue for changes, red for issues, gray for the Before reference, with numbers that match the notes. The Diff panel is generated after aligning rows, so content that only moved down is not flagged: blue bands are inserted rows, red marks changed pixels, gray markers show where rows were removed. Here the mobile form reflowed, so almost everything is red. The AI writes the findings from inspecting the images; the Diff panel is an aid, not a detector. Original captures: [Before](examples/demo/images/sp-before.jpg) · [After](examples/demo/images/sp-after.jpg).
 
 [Read the report](examples/demo/report.md) · [Reproduce the demo](examples/demo/README.md) · [Validation notes](examples/validation.md)
 
@@ -126,7 +124,7 @@ This validates the recipe. It does **not** read credentials or log in. Detailed 
 
 ## Output
 
-A run produces screenshots plus `report.json`, `report.md`, and `report.html`. Changed areas and UI problems can be marked with numbered frames. Original screenshots remain unchanged. The HTML report overlays frames on the originals; Markdown and GitHub comments use separate annotated PNGs.
+A run produces screenshots plus `report.json`, `report.md`, and `report.html`. Changed areas and UI problems can be marked with numbered frames. Original screenshots remain unchanged. For every case with both captures, the helper writes one Before / After / Diff PNG that Markdown and GitHub comments show as a single image; cases with a single capture get an annotated PNG instead. The HTML report overlays frames on the originals and links the composite.
 
 The Markdown report and the PR comment are built to be skimmed: a one-line count, then only the changed screens with their Before/After images and a short finding. Unchanged screens, new or removed screens, unverified cases, replay steps, and run conditions are collapsed at the end. The HTML report keeps everything expanded.
 
@@ -139,7 +137,7 @@ python3 /PATH/TO/SKILL/scripts/review.py render /PATH/TO/RUN/report.json > /PATH
 python3 /PATH/TO/SKILL/scripts/review.py render /PATH/TO/RUN/report.json --format html > /PATH/TO/RUN/report.html
 ```
 
-For annotated screenshots in Markdown or a PR, install the optional PNG dependency in your Python environment and export the marked copies first:
+For composites and annotated screenshots in Markdown or a PR, install the optional PNG dependency in your Python environment and export them first:
 
 ```bash
 python3 -m pip install -r /PATH/TO/SKILL/requirements-annotations.txt
@@ -148,7 +146,7 @@ python3 /PATH/TO/SKILL/scripts/review.py render /PATH/TO/RUN/report.annotated.js
 python3 /PATH/TO/SKILL/scripts/review.py render /PATH/TO/RUN/report.annotated.json --format html > /PATH/TO/RUN/report.html
 ```
 
-Use the derived JSON for publication too. Upload both the original and annotated images. The helper checks that the marked PNG still matches its source and region definitions. HTML overlays work without Pillow; missing PNGs or upload URLs block annotated PR publication. See [annotation instructions](skills/pr-visual-review/references/annotations.md) (Japanese).
+Use the derived JSON for publication too. Upload the originals plus each composite (or annotated PNG) and record their URLs. The helper checks that every derived PNG still matches its sources and region definitions. HTML overlays work without Pillow; missing PNGs or upload URLs block PR publication. See [annotation instructions](skills/pr-visual-review/references/annotations.md) (Japanese).
 
 Keep HTML next to report.json and its images. GitHub displays HTML source; clone or download the example to view it in a browser. Read the [report format](skills/pr-visual-review/references/report-format.md) for details (Japanese).
 

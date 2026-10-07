@@ -541,11 +541,14 @@ class ReviewTest(unittest.TestCase):
         try: from PIL import Image
         except ImportError: self.skipTest('Optional PNG tests require Pillow')
         import hashlib
+        # A single-capture case (new screen) gets a per-side annotated PNG; a two-capture case gets a composite.
         for name in ['before','after']:Image.new('RGB',(400,300),'white').save(self.root/f'images/{name}.png')
-        r=self.annotated();source=(self.root/'images/after.png').read_bytes()
+        r=self.annotated();r['cases'][0]['before']={'state':'absent','note':'new screen'}
+        source=(self.root/'images/after.png').read_bytes()
         output=review.annotate(r,self.root)
         c=output['cases'][0]['after']
         self.assertEqual((self.root/'images/after.png').read_bytes(),source)
+        self.assertNotIn('composite_image',output['cases'][0])
         with Image.open(self.root/c['annotated_image']) as im:
             self.assertEqual(im.size,(400,300))
             self.assertEqual(im.getpixel((390,290))[:3],(255,255,255))
@@ -560,33 +563,127 @@ class ReviewTest(unittest.TestCase):
         with self.assertRaises(ValueError):review.render(output,self.root)
         # Export can refresh an old derivative after a metadata/source change.
         self.assertIn('annotated_image',review.annotate(stale,self.root)['cases'][0]['after'])
+        # With both captures the frames live in the composite and no per-side PNG is written.
+        both=review.annotate(self.annotated(),self.root)['cases'][0]
+        self.assertIn('composite_image',both)
+        self.assertNotIn('annotated_image',both['after'])
 
     def test_annotation_publication_requires_both_hosted_versions(self):
         try: from PIL import Image
         except ImportError: self.skipTest('Optional PNG tests require Pillow')
         for name in ['before','after']:Image.new('RGB',(400,300),'white').save(self.root/f'images/{name}.png')
         r=review.annotate(self.annotated(),self.root);api=FakeAPI()
-        with self.assertRaises(ValueError):review.publish(r,self.root,execute=True,images_reviewed=True,api=api)
+        with self.assertRaisesRegex(ValueError,'composite_url'):review.publish(r,self.root,execute=True,images_reviewed=True,api=api)
         self.assertFalse(api.writes)
-        r['cases'][0]['after']['annotated_url']='https://example.com/annotated.png'
+        r['cases'][0]['composite_url']='https://example.com/composite.png'
         result=review.publish(r,self.root,api=api)
-        self.assertIn('https://example.com/annotated.png',result['body'])
+        self.assertIn('https://example.com/composite.png',result['body'])
         self.assertIn('https://example.com/after.png',result['body'])
+        # Single-capture cases still need the hosted annotated PNG.
+        single=self.annotated();single['cases'][0]['before']={'state':'absent','note':'new screen'}
+        single=review.annotate(single,self.root)
+        with self.assertRaisesRegex(ValueError,'annotated_url'):review.publish(single,self.root,api=api)
+        single['cases'][0]['after']['annotated_url']='https://example.com/annotated.png'
+        self.assertIn('https://example.com/annotated.png',review.publish(single,self.root,api=api)['body'])
 
     def test_annotation_png_preserves_transparency_and_display_orientation(self):
         try: from PIL import Image
         except ImportError: self.skipTest('Optional PNG tests require Pillow')
         Image.new('RGBA',(400,300),(0,0,0,0)).save(self.root/'images/after.png')
-        r=review.annotate(self.annotated(),self.root)
+        r=self.annotated();r['cases'][0]['before']={'state':'absent','note':'new screen'}
+        r=review.annotate(r,self.root)
         with self.subTest('transparency'), Image.open(self.root/r['cases'][0]['after']['annotated_image']) as im:
             self.assertEqual(im.mode,'RGBA')
             self.assertEqual(im.getpixel((390,290)),(0,0,0,0))
         src=Image.new('RGB',(400,300),'white');exif=Image.Exif();exif[274]=6
         src.save(self.root/'images/rotated.jpg',exif=exif)
-        r=self.annotated();r['cases'][0]['after']['image']='images/rotated.jpg'
+        r=self.annotated();r['cases'][0]['before']={'state':'absent','note':'new screen'};r['cases'][0]['after']['image']='images/rotated.jpg'
         r=review.annotate(r,self.root)
         with Image.open(self.root/r['cases'][0]['after']['annotated_image']) as im:
             self.assertEqual(im.size,(300,400))
+
+    def composite_fixture(self, insert_rows=40):
+        """Before: a textured page where every row looks different (like real UI rows).
+        After: the same page with `insert_rows` white rows inserted at y=50, pushing the rest down."""
+        from PIL import Image
+        before = Image.new('RGB', (400, 300))
+        before.putdata([(((x // 8) * 37 + y * 53) % 200 + 40,) * 3 for y in range(300) for x in range(400)])
+        after = Image.new('RGB', (400, 300), 'white')
+        after.paste(before.crop((0, 0, 400, 50)), (0, 0))
+        after.paste(before.crop((0, 50, 400, 300 - insert_rows)), (0, 50 + insert_rows))
+        before.save(self.root / 'images/before.png')
+        after.save(self.root / 'images/after.png')
+        return self.v2()
+
+    def diff_origin(self):
+        ia = review.image_annotations
+        return (ia.PANEL_PAD + (400 + ia.GUTTER + ia.PANEL_GAP) * 2 + ia.GUTTER, ia.PANEL_PAD + ia.PANEL_HEAD)
+
+    def test_composite_is_written_for_both_captures_and_marks_inserted_rows_not_shifted_content(self):
+        try:
+            from PIL import Image
+        except ImportError:
+            self.skipTest('Optional PNG tests require Pillow')
+        output = review.annotate(self.composite_fixture(), self.root)
+        case = output['cases'][0]
+        self.assertIn('composite_image', case)
+        self.assertNotIn('annotated_image', case['after'], 'no annotations were requested')
+        ia = review.image_annotations
+        with Image.open(self.root / case['composite_image']) as im:
+            self.assertEqual(im.size, (ia.PANEL_PAD * 2 + (400 + ia.GUTTER) * 3 + ia.PANEL_GAP * 2,
+                                       ia.PANEL_PAD * 2 + ia.PANEL_HEAD + 300), 'three panels side by side for narrow captures')
+            diff_x, diff_y = self.diff_origin()
+            inserted = im.getpixel((diff_x + 200, diff_y + 70))[:3]
+            self.assertGreater(inserted[2], inserted[0], 'inserted rows are tinted blue')
+            self.assertEqual(im.getpixel((diff_x - ia.GUTTER + 2, diff_y + 70))[:3], ia.DIFF_INSERTED, 'gutter marks the band')
+            shifted = im.getpixel((diff_x + 200, diff_y + 200))[:3]
+            self.assertEqual(len(set(shifted)), 1, 'content that only moved down stays gray, not red')
+            self.assertNotEqual(im.getpixel((diff_x + 200, diff_y + 20))[:3], ia.DIFF_CHANGED, 'rows above the insert are unchanged')
+
+    def test_composite_changed_pixels_are_red_and_markdown_uses_one_image(self):
+        try:
+            from PIL import Image
+        except ImportError:
+            self.skipTest('Optional PNG tests require Pillow')
+        r = self.composite_fixture(insert_rows=0)
+        with Image.open(self.root / 'images/after.png') as after:
+            after = after.copy()
+        after.paste((200, 0, 0), (20, 140, 380, 160))  # same rows, different pixels
+        after.save(self.root / 'images/after.png')
+        output = review.annotate(r, self.root)
+        case = output['cases'][0]
+        ia = review.image_annotations
+        with Image.open(self.root / case['composite_image']) as im:
+            diff_x, diff_y = self.diff_origin()
+            self.assertEqual(im.getpixel((diff_x + 200, diff_y + 150))[:3], ia.DIFF_CHANGED)
+            self.assertEqual(len(set(im.getpixel((diff_x + 200, diff_y + 250))[:3])), 1, 'unchanged rows stay gray')
+        md = review.render(output, self.root)
+        self.assertIn(f"![Before / After / Diff](<{case['composite_image']}>)", md)
+        self.assertNotIn('| Before | After |', md.split('<details>')[0], 'the body shows the composite instead of the pair')
+        self.assertIn('[Before](<images/before.png>)', md)
+        self.assertIn('[After](<images/after.png>)', md)
+        html = review.render(output, self.root, format='html')
+        self.assertIn(case['composite_image'], html)
+
+    def test_composite_goes_stale_and_remote_needs_its_url(self):
+        try:
+            from PIL import Image
+        except ImportError:
+            self.skipTest('Optional PNG tests require Pillow')
+        output = review.annotate(self.composite_fixture(), self.root)
+        api = FakeAPI()
+        with self.assertRaisesRegex(ValueError, 'composite'):
+            review.publish(output, self.root, api=api)
+        output['cases'][0]['composite_url'] = 'https://example.com/composite.png'
+        self.assertIn('https://example.com/composite.png', review.publish(output, self.root, api=api)['body'])
+        Image.new('RGB', (400, 300), 'black').save(self.root / 'images/before.png')
+        with self.assertRaisesRegex(ValueError, 'Stale composite'):
+            review.render(output, self.root)
+        # A report with a composite but an absent side is rejected before any image work.
+        broken = self.v2()
+        broken['cases'][0].update(composite_image='annotated/x.png', before={'state': 'absent', 'note': 'new'})
+        with self.assertRaises(ValueError):
+            review.render(broken, self.root)
 
     def test_annotation_cli_cannot_overwrite_source_images(self):
         import subprocess

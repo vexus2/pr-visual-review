@@ -7,9 +7,9 @@ Desktop 1280×760 · Mobile 375×844 · Google Chrome via Codex browser connecti
 
 ### Mobile: Save moves off-screen — Needs review
 
-| Before | After |
-| --- | --- |
-| ![Before (annotated)](<annotated/sp-settings-before-5f6ac524a6bc9878.png>)<br>[original](<images/sp-before.jpg>) | ![After (annotated)](<annotated/sp-settings-after-a8d1362c51f45923.png>)<br>[original](<images/sp-after.jpg>) |
+![Before / After / Diff](<annotated/sp-settings-composite-c7474234b1cf434b.png>)
+
+original: [Before](<images/sp-before.jpg>) · [After](<images/sp-after.jpg>)
 
 The new form extends past the 375px viewport. Save changes is no longer visible without horizontal scrolling.
 
@@ -17,9 +17,9 @@ The new form extends past the 375px viewport. Save changes is no longer visible 
 
 ### Desktop: notification controls added — Changed
 
-| Before | After |
-| --- | --- |
-| ![Before](<images/pc-before.jpg>) | ![After (annotated)](<annotated/pc-settings-after-ed0645c52588bf6f.png>)<br>[original](<images/pc-after.jpg>) |
+![Before / After / Diff](<annotated/pc-settings-composite-1455342cf46ff94d.png>)
+
+original: [Before](<images/pc-before.jpg>) · [After](<images/pc-after.jpg>)
 
 Email notification controls are present. The existing fields and Save changes button remain visible.
 
@@ -38,6 +38,8 @@ The demo does not persist settings. A visible Save button is not evidence that s
 
 <details>
 <summary>Conditions and unverified scope</summary>
+
+The Diff panel is generated after aligning rows: blue bands are inserted rows, red marks changed pixels, gray markers show where rows were removed. Findings were written from inspecting the images, not from this panel.
 
 **Annotations** — Gray = Before reference, blue = change, red = issue. Numbers match the notes.
 

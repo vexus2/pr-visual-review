@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.1.4 — 2026-10-07
+
+- `annotate` now writes one Before / After / Diff PNG for every case with both captures. Before and After carry the numbered frames; the Diff panel is computed after aligning rows, so inserted content shows as a blue band and content that merely moved down is not flagged. Narrow captures sit side by side; wide ones stack vertically.
+- Markdown and the PR comment show that single image per case with links to the originals. Publishing requires `composite_url` for composites and `annotated_url` only for single-capture cases. HTML links the composite from each case.
+- Per-side annotated PNGs are now written only for cases with a single capture (new or removed screens).
+- Freshness checks cover the composite: a changed source image or region definition rejects the old PNG.
+- Demo regenerated with composites; README shows the mobile composite.
+
 ## 0.1.3 — 2026-10-07
 
 - Markdown report and PR comment are rewritten to be skimmed. The body contains only changed and needs-review cases (action-required first) with images and a short finding. Unchanged, new/removed, and unverified cases, replay steps, run conditions, commits, and limitations are collapsed at the end. Shared browser/conditions are stated once; per-case values appear only when they differ. The first live run produced a 9,800-character comment that reviewers did not read.

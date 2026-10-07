@@ -38,11 +38,9 @@ $pr-visual-review PR #123をPCとSP（375px）で確認してください。
 
 Beforeは375px内に収まっています。Afterはページ幅が616pxになり、保存ボタンの左端が画面幅を超えています。レポートでは、意図した通知欄の追加と、この崩れを分けて記録します。
 
-| Before：保存ボタンが見える | After：保存ボタンが画面外 |
-| --- | --- |
-| ![375pxのBefore](examples/demo/annotated/sp-settings-before-5f6ac524a6bc9878.png) | ![375pxのAfter](examples/demo/annotated/sp-settings-after-a8d1362c51f45923.png) |
+![375pxのBefore / After / Diff。Beforeでは保存ボタンが見え、Afterではフォームがはみ出し、Diffはレイアウト全体が変わったことを示す](examples/demo/annotated/sp-settings-composite-c7474234b1cf434b.png)
 
-青枠は変更、赤枠は問題、灰色枠はBeforeの参照箇所です。番号と説明が対応しています。AIが画像を確認して領域を選ぶ方式で、ピクセル差分の自動検出ではありません。原画像も残しています：[Before](examples/demo/images/sp-before.jpg) · [After](examples/demo/images/sp-after.jpg)。
+1ケースにつき画像は1枚です。BeforeとAfterにはAIが選んだ枠を描きます。青は変更、赤は問題、灰色はBeforeの参照箇所で、番号が説明と対応します。Diff欄は行を対応付けてから差分を取るので、下にずれただけの内容は赤くなりません。青帯は追加された行、赤は変わった画素、灰色の印は削除された行の位置です。この例ではSPのフォームが組み直されているため、ほぼ全体が赤になります。所見はAIが画像を見て書くもので、Diff欄は補助表示です。原画像も残しています：[Before](examples/demo/images/sp-before.jpg) · [After](examples/demo/images/sp-after.jpg)。
 
 [レポートを見る](examples/demo/report.md) · [デモの再現方法](examples/demo/README.md) · [検証範囲](examples/validation.md)
 
@@ -100,7 +98,7 @@ Claude Codeのプラグイン版では `/pr-visual-review:pr-visual-review` を�
 
 レポートは英語・日本語を指定できます。report.jsonの `language` を `en` / `ja` にすると見出しや判定ラベルが切り替わります（省略時は従来の日本語）。所見本文は自動翻訳されません。
 
-成果物は `report.json`・`report.md`・`report.html` と画像です。MarkdownとPRコメントは流し読み前提の構成で、冒頭の件数1行のあとに、変更のあった画面だけをBefore/After画像と短い所見で並べます。変化のない画面、新規・削除画面、未確認ケース、操作手順、実行条件は末尾の折りたたみにまとめます。HTMLは全項目を展開した詳細版です。変更箇所とUIの問題を枠・番号で示せます。原画像は変更せず、HTMLでは枠を重ね、MarkdownやPRでは別に書き出した注釈付きPNGを使います。同じJSONから標準のHTMLを生成するため、セッションごとに独自のHTML生成コードを書く必要はありません。「今回発生」「今回悪化」「既存」「原因不明」と「要対応」「任意」「要調査」を分けて表示します。既存の横スクロールや通常の折り返しを、そのまま今回のPRの必須修正として扱うことはありません。
+成果物は `report.json`・`report.md`・`report.html` と画像です。MarkdownとPRコメントは流し読み前提の構成で、冒頭の件数1行のあとに、変更のあった画面だけをBefore/After画像と短い所見で並べます。変化のない画面、新規・削除画面、未確認ケース、操作手順、実行条件は末尾の折りたたみにまとめます。HTMLは全項目を展開した詳細版です。変更箇所とUIの問題を枠・番号で示せます。原画像は変更しません。前後とも撮影できたケースは、Before / After / Diff を1枚にした合成PNGをMarkdownとPRコメントに表示します。片側しか撮影できないケースは注釈付きPNGを使います。HTMLは原画像に枠を重ね、合成画像へのリンクも置きます。同じJSONから標準のHTMLを生成するため、セッションごとに独自のHTML生成コードを書く必要はありません。「今回発生」「今回悪化」「既存」「原因不明」と「要対応」「任意」「要調査」を分けて表示します。既存の横スクロールや通常の折り返しを、そのまま今回のPRの必須修正として扱うことはありません。
 
 ## ログイン方法を指定する
 
@@ -144,7 +142,7 @@ python3 /ABS/SKILL/scripts/review.py annotate /ABS/RUN/report.json --out /ABS/RU
 python3 /ABS/SKILL/scripts/review.py render /ABS/RUN/report.annotated.json > /ABS/RUN/report.md
 ```
 
-原画像と注釈付きPNGをそれぞれアップロードし、投稿にも派生JSONを使います。原画像や座標を変更した場合は、古いPNGを使わず再出力が必要です。PillowがなくてもHTMLの注釈は表示できますが、必要なPNGやURLがない状態では注釈付きPR投稿を中断します。詳細は [注釈の設定と手順](skills/pr-visual-review/references/annotations.md) を参照してください。
+原画像と合成PNG（片側だけのケースは注釈付きPNG）をそれぞれアップロードし、URLを派生JSONに記録して投稿にも派生JSONを使います。原画像や座標を変更した場合は、古いPNGを使わず再出力が必要です。PillowがなくてもHTMLの注釈は表示できますが、必要なPNGやURLがない状態ではPR投稿を中断します。詳細は [注釈の設定と手順](skills/pr-visual-review/references/annotations.md) を参照してください。
 
 ## プラグインの更新
 

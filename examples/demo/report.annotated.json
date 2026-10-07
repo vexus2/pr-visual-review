@@ -53,10 +53,7 @@
       },
       "after": {
         "state": "captured",
-        "image": "images/pc-after.jpg",
-        "annotated_image": "annotated/pc-settings-after-ed0645c52588bf6f.png",
-        "annotated_sha256": "a2258fdfe71ddc6196b402aa2ce985840a7b855f6261aa4dcc67198c76cd4b53",
-        "annotation_fingerprint": "ed0645c52588bf6f3499edee7a137dbaf65ced4d864dd26f704e32af7e981207"
+        "image": "images/pc-after.jpg"
       },
       "issues": [],
       "annotations": [
@@ -71,7 +68,10 @@
             "height": 0.195
           }
         }
-      ]
+      ],
+      "composite_image": "annotated/pc-settings-composite-1455342cf46ff94d.png",
+      "composite_sha256": "384da0ffe8a1b49fdf8a01179a9b1bd3f2966b2380ba56ad0ae01f1895fce72f",
+      "composite_fingerprint": "1455342cf46ff94de1abbc4948d94273158c80207da2d8e116e4cdeee66234a1"
     },
     {
       "id": "sp-settings",
@@ -98,17 +98,11 @@
       "finding": "The new form extends past the 375px viewport. Save changes is no longer visible without horizontal scrolling.",
       "before": {
         "state": "captured",
-        "image": "images/sp-before.jpg",
-        "annotated_image": "annotated/sp-settings-before-5f6ac524a6bc9878.png",
-        "annotated_sha256": "9a97ecf48c89e959b863dca135021610cf9abc87703d29f376188fa2c64a8d20",
-        "annotation_fingerprint": "5f6ac524a6bc98781773bb85f7ea90022afcec2c5c63deea50f8684b0a1b8133"
+        "image": "images/sp-before.jpg"
       },
       "after": {
         "state": "captured",
-        "image": "images/sp-after.jpg",
-        "annotated_image": "annotated/sp-settings-after-a8d1362c51f45923.png",
-        "annotated_sha256": "02514bca868c1eb150418b762ab68cdad85fe72dfd6d14d55aed39e099cfd0ed",
-        "annotation_fingerprint": "a8d1362c51f45923bae8a3df9c8be7d5f5ecbf095c968db2328f85a23a51ff5a"
+        "image": "images/sp-after.jpg"
       },
       "issues": [
         {
@@ -138,7 +132,10 @@
             "height": 0.58
           }
         }
-      ]
+      ],
+      "composite_image": "annotated/sp-settings-composite-c7474234b1cf434b.png",
+      "composite_sha256": "b42a3d8850b045d0471231cdb6d4984b79d63c4c9d8259feb458a68a18db0ea1",
+      "composite_fingerprint": "c7474234b1cf434b7d232157cd918d59b9e3e202f5e2555e8a0be7298f9359dd"
     },
     {
       "id": "save-result",

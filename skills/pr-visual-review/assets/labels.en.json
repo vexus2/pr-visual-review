@@ -13,6 +13,8 @@
   "変更": "Change", "問題": "Issue", "参照": "Ref", "注釈": "Annotations", "注釈付き": "annotated", "原画像": "original", "注釈なしの原画像": "Original screenshots (no annotations)",
   "灰色はBeforeの参照箇所、青は変更、赤は問題です。番号は説明と対応します。": "Gray = Before reference, blue = change, red = issue. Numbers match the notes.",
 
+  "Before / After / Diff の合成画像": "Before / After / Diff composite",
+  "Diff欄は行を対応付けたうえでの自動表示です。青帯は追加された行、赤は変わった画素、灰色の印は削除された行の位置を示します。所見は画像を確認して書いています。": "The Diff panel is generated after aligning rows: blue bands are inserted rows, red marks changed pixels, gray markers show where rows were removed. Findings were written from inspecting the images, not from this panel.",
   "画像を開く": "Show images", "確認条件・未確認事項": "Conditions and unverified scope", "各ケースの手順": "Steps per case",
   "コミット": "Commits", "撮影": "Captured", "ブラウザ": "Browser", "条件": "Conditions", "確認範囲": "Scope",
   "画面": "Route", "操作": "Steps", "理由": "Why", "撮影基準": "Alignment", "根拠": "Evidence", "影響": "Impact",
