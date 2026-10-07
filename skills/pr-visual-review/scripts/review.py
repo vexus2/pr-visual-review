@@ -288,7 +288,7 @@ def validate(report, root, remote=False):
             image_path(case['composite_image'], root)
             if remote:
                 require(isinstance(case.get('composite_url'), str) and bool(case['composite_url']),
-                        'composite_url missing: upload the Before/After/Diff PNG before publishing')
+                        'composite_url missing: upload the Before | After PNG before publishing')
                 image_url(case['composite_url'])
         if 'unverified' in states:
             require(case['result'] == 'unverified', 'an unverified side requires result=unverified')
@@ -345,7 +345,7 @@ def capture_cell(case, side, root, remote, report):
 
 
 def composite_block(case, report, root, remote):
-    """One Before/After/Diff image plus links to the untouched originals."""
+    """One Before | After image plus links to the untouched originals."""
     t = lambda value: translate(report, value)
     image_annotations.verify_composite(case, root)
     src = image_url(case.get('composite_url')) if remote else image_path(case['composite_image'], root)
@@ -355,7 +355,7 @@ def composite_block(case, report, root, remote):
         originals.append(f"[{side}](<{image_url(capture['url']) if remote else image_path(capture['image'], root)}>)")
         if 'detail_image' in capture:
             originals.append(f"[{side} {t('拡大')}](<{image_url(capture['detail_url']) if remote else image_path(capture['detail_image'], root)}>)")
-    return [f'![Before / After / Diff](<{src}>)', '', f"{t('原画像')}: " + ' · '.join(originals), '']
+    return [f'![Before / After](<{src}>)', '', f"{t('原画像')}: " + ' · '.join(originals), '']
 
 
 def case_block(case, report, root, remote, heading):
@@ -379,8 +379,6 @@ def details_block(report, root, remote):
     """Everything a reviewer needs to reproduce or audit, collapsed once at the end."""
     t = lambda value: translate(report, value)
     lines = ['<details>', f"<summary>{t('確認条件・未確認事項')}</summary>", '']
-    if any('composite_image' in case for case in report['cases']):
-        lines += [t('Diff欄は行を対応付けたうえでの自動表示です。青帯は追加された行、赤は変わった画素、灰色の印は削除された行の位置を示します。所見は画像を確認して書いています。'), '']
     annotated = [case for case in report['cases'] if case.get('annotations')]
     if annotated:
         lines += [f"**{t('注釈')}** — {t('灰色はBeforeの参照箇所、青は変更、赤は問題です。番号は説明と対応します。')}", '']
@@ -486,9 +484,8 @@ def render_html(report, root, remote):
         if 'composite_image' in case:
             image_annotations.verify_composite(case, root)
             composite_src = image_url(case.get('composite_url')) if remote else image_path(case['composite_image'], root)
-            details += (f'<details class="details-images"><summary>{t("Before / After / Diff の合成画像")}</summary>'
-                        f'<p class="muted">{t("Diff欄は行を対応付けたうえでの自動表示です。青帯は追加された行、赤は変わった画素、灰色の印は削除された行の位置を示します。所見は画像を確認して書いています。")}</p>'
-                        f'<a class="image-frame" href="{esc(composite_src)}"><img src="{esc(composite_src)}" loading="lazy" alt="{title} — Before / After / Diff"></a></details>')
+            details += (f'<details class="details-images"><summary>{t("Before / After の合成画像")}</summary>'
+                        f'<a class="image-frame" href="{esc(composite_src)}"><img src="{esc(composite_src)}" loading="lazy" alt="{title} — Before / After"></a></details>')
         if any('detail_image' in case[s] for s in ('before', 'after')):
             details += (f'<details class="details-images"><summary>{t("変更箇所の詳細を開く")}</summary><div class="pair">' +
                        figure(case['before'], 'Before', case['title'], True) +

@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.1.5 — 2026-10-07
+
+- Remove the Diff panel from the composite. On a real PR the Before and After captures are aligned by an anchor element rather than by scroll position, so row alignment found almost no matching rows and the panel was an unreadable block of red.
+- The composite is now always Before | After side by side at the same scale with the numbered frames. Composite file names change (fingerprint version 2); rerun `annotate`.
+- Demo regenerated; README and references updated.
+
 ## 0.1.4 — 2026-10-07
 
 - `annotate` now writes one Before / After / Diff PNG for every case with both captures. Before and After carry the numbered frames; the Diff panel is computed after aligning rows, so inserted content shows as a blue band and content that merely moved down is not flagged. Narrow captures sit side by side; wide ones stack vertically.

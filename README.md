@@ -38,9 +38,9 @@ This public demo uses a small local app with an intentional mobile regression. T
 
 The Before screen fits within 375px. In After, the document is 616px wide and the Save button starts beyond the viewport. The report separates this regression from the expected addition of notification controls.
 
-![Before, After and Diff at 375px: Save is visible in Before, the form overflows in After, and the Diff panel shows the whole layout changed](examples/demo/annotated/sp-settings-composite-c7474234b1cf434b.png)
+![Before and After at 375px side by side: Save is visible in Before, the form overflows in After and Save is outside the viewport](examples/demo/annotated/sp-settings-composite-688551ed30accd22.png)
 
-Each case is one image. Before and After carry the AI's frames: blue for changes, red for issues, gray for the Before reference, with numbers that match the notes. The Diff panel is generated after aligning rows, so content that only moved down is not flagged: blue bands are inserted rows, red marks changed pixels, gray markers show where rows were removed. Here the mobile form reflowed, so almost everything is red. The AI writes the findings from inspecting the images; the Diff panel is an aid, not a detector. Original captures: [Before](examples/demo/images/sp-before.jpg) · [After](examples/demo/images/sp-after.jpg).
+Each case is one image with Before and After side by side at the same scale. Both carry the AI's frames: blue for changes, red for issues, gray for the Before reference, with numbers that match the notes. The AI chooses the regions after inspecting the images; there is no automatic pixel-diff detection. Original captures: [Before](examples/demo/images/sp-before.jpg) · [After](examples/demo/images/sp-after.jpg).
 
 [Read the report](examples/demo/report.md) · [Reproduce the demo](examples/demo/README.md) · [Validation notes](examples/validation.md)
 
@@ -124,7 +124,7 @@ This validates the recipe. It does **not** read credentials or log in. Detailed 
 
 ## Output
 
-A run produces screenshots plus `report.json`, `report.md`, and `report.html`. Changed areas and UI problems can be marked with numbered frames. Original screenshots remain unchanged. For every case with both captures, the helper writes one Before / After / Diff PNG that Markdown and GitHub comments show as a single image; cases with a single capture get an annotated PNG instead. The HTML report overlays frames on the originals and links the composite.
+A run produces screenshots plus `report.json`, `report.md`, and `report.html`. Changed areas and UI problems can be marked with numbered frames. Original screenshots remain unchanged. For every case with both captures, the helper writes one side-by-side Before | After PNG that Markdown and GitHub comments show as a single image; cases with a single capture get an annotated PNG instead. The HTML report overlays frames on the originals and links the composite.
 
 The Markdown report and the PR comment are built to be skimmed: a one-line count, then only the changed screens with their Before/After images and a short finding. Unchanged screens, new or removed screens, unverified cases, replay steps, and run conditions are collapsed at the end. The HTML report keeps everything expanded.
 

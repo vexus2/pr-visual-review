@@ -69,9 +69,9 @@
           }
         }
       ],
-      "composite_image": "annotated/pc-settings-composite-1455342cf46ff94d.png",
-      "composite_sha256": "384da0ffe8a1b49fdf8a01179a9b1bd3f2966b2380ba56ad0ae01f1895fce72f",
-      "composite_fingerprint": "1455342cf46ff94de1abbc4948d94273158c80207da2d8e116e4cdeee66234a1"
+      "composite_image": "annotated/pc-settings-composite-f371e9aacad442d7.png",
+      "composite_sha256": "e355c0affd6c939a54d8edca4e73763f6c60425a3d14a918ddf9672511f599ea",
+      "composite_fingerprint": "f371e9aacad442d7201187d8aae693d307421357c5482dfd35cb45f27db8de0e"
     },
     {
       "id": "sp-settings",
@@ -133,9 +133,9 @@
           }
         }
       ],
-      "composite_image": "annotated/sp-settings-composite-c7474234b1cf434b.png",
-      "composite_sha256": "b42a3d8850b045d0471231cdb6d4984b79d63c4c9d8259feb458a68a18db0ea1",
-      "composite_fingerprint": "c7474234b1cf434b7d232157cd918d59b9e3e202f5e2555e8a0be7298f9359dd"
+      "composite_image": "annotated/sp-settings-composite-688551ed30accd22.png",
+      "composite_sha256": "7bff1a17b80bc92965d4f78d2d3053e6f5d0c2b0bb9685da08274b0f321d2aa4",
+      "composite_fingerprint": "688551ed30accd22a9cfca5bab6414cfc23abf5fbee1b1a9a4788a68cb23ac67"
     },
     {
       "id": "save-result",

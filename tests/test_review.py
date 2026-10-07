@@ -615,11 +615,7 @@ class ReviewTest(unittest.TestCase):
         after.save(self.root / 'images/after.png')
         return self.v2()
 
-    def diff_origin(self):
-        ia = review.image_annotations
-        return (ia.PANEL_PAD + (400 + ia.GUTTER + ia.PANEL_GAP) * 2 + ia.GUTTER, ia.PANEL_PAD + ia.PANEL_HEAD)
-
-    def test_composite_is_written_for_both_captures_and_marks_inserted_rows_not_shifted_content(self):
+    def test_composite_places_before_and_after_side_by_side_at_source_scale(self):
         try:
             from PIL import Image
         except ImportError:
@@ -629,36 +625,32 @@ class ReviewTest(unittest.TestCase):
         self.assertIn('composite_image', case)
         self.assertNotIn('annotated_image', case['after'], 'no annotations were requested')
         ia = review.image_annotations
-        with Image.open(self.root / case['composite_image']) as im:
-            self.assertEqual(im.size, (ia.PANEL_PAD * 2 + (400 + ia.GUTTER) * 3 + ia.PANEL_GAP * 2,
-                                       ia.PANEL_PAD * 2 + ia.PANEL_HEAD + 300), 'three panels side by side for narrow captures')
-            diff_x, diff_y = self.diff_origin()
-            inserted = im.getpixel((diff_x + 200, diff_y + 70))[:3]
-            self.assertGreater(inserted[2], inserted[0], 'inserted rows are tinted blue')
-            self.assertEqual(im.getpixel((diff_x - ia.GUTTER + 2, diff_y + 70))[:3], ia.DIFF_INSERTED, 'gutter marks the band')
-            shifted = im.getpixel((diff_x + 200, diff_y + 200))[:3]
-            self.assertEqual(len(set(shifted)), 1, 'content that only moved down stays gray, not red')
-            self.assertNotEqual(im.getpixel((diff_x + 200, diff_y + 20))[:3], ia.DIFF_CHANGED, 'rows above the insert are unchanged')
+        with Image.open(self.root / case['composite_image']) as im, \
+                Image.open(self.root / 'images/before.png') as before, Image.open(self.root / 'images/after.png') as after:
+            self.assertEqual(im.size, (ia.PANEL_PAD * 2 + 400 * 2 + ia.PANEL_GAP, ia.PANEL_PAD * 2 + ia.PANEL_HEAD + 300))
+            top = ia.PANEL_PAD + ia.PANEL_HEAD
+            for x, y in ((200, 20), (200, 150), (50, 280)):
+                self.assertEqual(im.getpixel((ia.PANEL_PAD + x, top + y))[:3], before.getpixel((x, y)), 'Before panel is unscaled')
+                self.assertEqual(im.getpixel((ia.PANEL_PAD + 400 + ia.PANEL_GAP + x, top + y))[:3], after.getpixel((x, y)), 'After panel is unscaled')
 
-    def test_composite_changed_pixels_are_red_and_markdown_uses_one_image(self):
+    def test_composite_carries_frames_and_markdown_uses_one_image(self):
         try:
             from PIL import Image
         except ImportError:
             self.skipTest('Optional PNG tests require Pillow')
-        r = self.composite_fixture(insert_rows=0)
-        with Image.open(self.root / 'images/after.png') as after:
-            after = after.copy()
-        after.paste((200, 0, 0), (20, 140, 380, 160))  # same rows, different pixels
-        after.save(self.root / 'images/after.png')
+        self.composite_fixture()
+        r = self.annotated()  # change frame on After at x .1...7, y .2...6
         output = review.annotate(r, self.root)
         case = output['cases'][0]
         ia = review.image_annotations
         with Image.open(self.root / case['composite_image']) as im:
-            diff_x, diff_y = self.diff_origin()
-            self.assertEqual(im.getpixel((diff_x + 200, diff_y + 150))[:3], ia.DIFF_CHANGED)
-            self.assertEqual(len(set(im.getpixel((diff_x + 200, diff_y + 250))[:3])), 1, 'unchanged rows stay gray')
+            after_x, top = ia.PANEL_PAD + 400 + ia.PANEL_GAP, ia.PANEL_PAD + ia.PANEL_HEAD
+            frame = im.getpixel((after_x + round(.1 * 399), top + round(.4 * 299)))[:3]
+            self.assertEqual('#%02x%02x%02x' % frame, ia.COLORS['change'], 'the change frame is drawn on the After panel')
+            self.assertEqual(len(set(im.getpixel((ia.PANEL_PAD + round(.1 * 399), top + round(.4 * 299)))[:3])), 1,
+                             'the Before panel has no frame when the annotation names only After')
         md = review.render(output, self.root)
-        self.assertIn(f"![Before / After / Diff](<{case['composite_image']}>)", md)
+        self.assertIn(f"![Before / After](<{case['composite_image']}>)", md)
         self.assertNotIn('| Before | After |', md.split('<details>')[0], 'the body shows the composite instead of the pair')
         self.assertIn('[Before](<images/before.png>)', md)
         self.assertIn('[After](<images/after.png>)', md)
