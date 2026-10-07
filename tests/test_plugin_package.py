@@ -38,16 +38,20 @@ class PluginPackageTest(unittest.TestCase):
         self.assertNotIn('version', claude['plugins'][0])
 
     def test_plugin_skill_keeps_the_existing_source_as_single_authority(self):
-        link = ROOT / 'skills/pr-visual-review'
+        link = ROOT / 'pr-visual-review'
         self.assertTrue(link.is_symlink())
-        self.assertEqual(link.resolve(), ROOT / 'pr-visual-review')
+        self.assertEqual(link.resolve(), ROOT / 'skills/pr-visual-review')
+        self.assertFalse((ROOT / 'skills/pr-visual-review').is_symlink())
         self.assertTrue((link / 'SKILL.md').is_file())
 
     def test_copied_package_can_load_the_skill_helpers_and_assets(self):
         with tempfile.TemporaryDirectory() as tmp:
             cache = Path(tmp)
-            for name in ['.codex-plugin', '.claude-plugin', 'skills', 'pr-visual-review']:
-                shutil.copytree(ROOT / name, cache / name, symlinks=True, ignore=shutil.ignore_patterns('__pycache__'))
+            # Codex cache copying skips symlinks. Required resources must be real files.
+            def ignore_links(directory, names):
+                return [name for name in names if name == '__pycache__' or (Path(directory) / name).is_symlink()]
+            for name in ['.codex-plugin', '.claude-plugin', 'skills']:
+                shutil.copytree(ROOT / name, cache / name, ignore=ignore_links)
             shutil.copy2(ROOT / 'plugin.json', cache / 'plugin.json')
             skill = cache / 'skills/pr-visual-review'
             self.assertTrue(skill.resolve().is_relative_to(cache.resolve()))

@@ -1,6 +1,6 @@
 # Plugin packaging and releases
 
-PR Visual Review is distributed as a plugin containing one skill. The review code and workflow remain in `pr-visual-review/`, so existing development links continue to work. `skills/pr-visual-review` is an internal relative symlink to that directory; there is no second copy to maintain.
+PR Visual Review is distributed as a plugin containing one skill. The review code and workflow live in `skills/pr-visual-review/` as real files. The old `pr-visual-review` path is a compatibility symlink, so existing local development links still resolve. Plugin caches do not need that alias; all required resources are under the standard skills directory. There is no second copy to maintain.
 
 ## Package files
 
@@ -26,11 +26,11 @@ The root portable manifest and both compatibility manifests must have the same n
 
 ```bash
 claude plugin validate .claude-plugin/marketplace.json --strict --json
-claude plugin validate .claude-plugin/plugin.json --json
+claude plugin validate .claude-plugin/plugin.json --strict --json
 claude --plugin-dir . plugin details pr-visual-review
 ```
 
-The Claude validator warns that it does not follow the internal skill symlink. Its runtime does follow it. To run a strict validation without that scanner limitation, validate a temporary package copy with internal symlinks materialized. Also inspect the runtime inventory: it must list exactly one `pr-visual-review` skill and zero hooks/MCP servers. The automated package tests verify that a copied package resolves its helpers and assets internally.
+Do not replace the real `skills/pr-visual-review/` directory with a symlink. Codex cache copying skips symlinks; a manifest can install successfully while its skill is missing. The package tests simulate that cache behavior and run the helper from the copied real directory. Native Claude validation should pass in strict mode on both the manifest and marketplace.
 
 ## Updates are host-managed
 

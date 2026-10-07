@@ -22,7 +22,7 @@ APIキー、Cookie、パスワード、顧客情報、非公開PRのソースや
 ```bash
 python3 -m unittest discover -s tests -v
 python3 -m compileall -q pr-visual-review/scripts
-python3 pr-visual-review/scripts/auth_config.py pr-visual-review/templates/auth.example.json
+python3 skills/pr-visual-review/scripts/auth_config.py pr-visual-review/templates/auth.example.json
 ```
 
 4. プラグインをリリースする場合は [plugin-maintenance.md](docs/plugin-maintenance.md) に従い、3つのmanifestのversionをそろえて更新します。

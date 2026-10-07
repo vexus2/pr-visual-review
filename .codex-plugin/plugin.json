@@ -1,8 +1,11 @@
 {
   "name": "pr-visual-review",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Review PR UI changes with before/after screenshots, numbered annotations, and explicit findings.",
-  "author": {"name": "vexus2", "url": "https://github.com/vexus2"},
+  "author": {
+    "name": "vexus2",
+    "url": "https://github.com/vexus2"
+  },
   "homepage": "https://github.com/vexus2/pr-visual-review",
   "repository": "https://github.com/vexus2/pr-visual-review",
   "license": "MIT",
@@ -13,8 +16,14 @@
     "longDescription": "Inspect changed screens in a local browser, compare before and after, mark changes and UI issues, and keep a report of what was not verified.",
     "developerName": "vexus2",
     "category": "Developer Tools",
-    "capabilities": ["Interactive", "Read", "Write"],
+    "capabilities": [
+      "Interactive",
+      "Read",
+      "Write"
+    ],
     "websiteURL": "https://github.com/vexus2/pr-visual-review",
-    "defaultPrompt": ["Review this PR on desktop and mobile. Keep the annotated screenshots and report local."]
+    "defaultPrompt": [
+      "Review this PR on desktop and mobile. Keep the annotated screenshots and report local."
+    ]
   }
 }

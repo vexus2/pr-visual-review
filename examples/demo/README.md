@@ -28,10 +28,10 @@ The server rewrites `run.json` and `change.patch` with fresh temporary commits a
 To render the checked-in evidence without recapturing:
 
 ```bash
-python3 -m pip install -r pr-visual-review/requirements-annotations.txt
-python3 pr-visual-review/scripts/review.py annotate examples/demo/report.json --out examples/demo/report.annotated.json
-python3 pr-visual-review/scripts/review.py render examples/demo/report.annotated.json > examples/demo/report.md
-python3 pr-visual-review/scripts/review.py render examples/demo/report.annotated.json --format html > examples/demo/report.html
+python3 -m pip install -r skills/pr-visual-review/requirements-annotations.txt
+python3 skills/pr-visual-review/scripts/review.py annotate examples/demo/report.json --out examples/demo/report.annotated.json
+python3 skills/pr-visual-review/scripts/review.py render examples/demo/report.annotated.json > examples/demo/report.md
+python3 skills/pr-visual-review/scripts/review.py render examples/demo/report.annotated.json --format html > examples/demo/report.html
 python3 -m http.server 8000 --bind 127.0.0.1 --directory examples/demo
 ```
 

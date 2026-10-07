@@ -131,13 +131,13 @@ Use .pr-visual-review.json for login. Review PR #123 on mobile only.
 
 Supported modes: existing session, form login, manual login, development fixture, and no login. Current instructions take priority over an explicitly selected config, then the project's config, then existing project instructions.
 
-Copy the [configuration example](pr-visual-review/templates/auth.example.json). Reference environment variable names or keys in a local JSON file; do not put password values in the skill or recipe. The agent checks identity, role, and comparison data separately on Before and After. Reports record only the mode and verification statuses.
+Copy the [configuration example](skills/pr-visual-review/templates/auth.example.json). Reference environment variable names or keys in a local JSON file; do not put password values in the skill or recipe. The agent checks identity, role, and comparison data separately on Before and After. Reports record only the mode and verification statuses.
 
 ```bash
 python3 /PATH/TO/SKILL/scripts/auth_config.py /PATH/TO/PROJECT/.pr-visual-review.json
 ```
 
-This checks the recipe. It does **not** read credentials or log in. Detailed [authentication guidance](pr-visual-review/references/authentication.md) is currently in Japanese.
+This checks the recipe. It does **not** read credentials or log in. Detailed [authentication guidance](skills/pr-visual-review/references/authentication.md) is currently in Japanese.
 
 ## Output
 
@@ -161,9 +161,9 @@ python3 /PATH/TO/SKILL/scripts/review.py render /PATH/TO/RUN/report.annotated.js
 python3 /PATH/TO/SKILL/scripts/review.py render /PATH/TO/RUN/report.annotated.json --format html > /PATH/TO/RUN/report.html
 ```
 
-Use the derived JSON for publication too. Upload both the original and annotated images. The helper checks that the marked PNG still matches its source and region definitions. HTML overlays work without Pillow; missing PNGs or upload URLs block annotated PR publication. See [annotation instructions](pr-visual-review/references/annotations.md) (Japanese).
+Use the derived JSON for publication too. Upload both the original and annotated images. The helper checks that the marked PNG still matches its source and region definitions. HTML overlays work without Pillow; missing PNGs or upload URLs block annotated PR publication. See [annotation instructions](skills/pr-visual-review/references/annotations.md) (Japanese).
 
-Keep HTML next to report.json and its images. GitHub displays HTML source; clone/download the example to view it in a browser. Read the [report format](pr-visual-review/references/report-format.md) for details (Japanese).
+Keep HTML next to report.json and its images. GitHub displays HTML source; clone/download the example to view it in a browser. Read the [report format](skills/pr-visual-review/references/report-format.md) for details (Japanese).
 
 ## Browser support and publication
 
@@ -176,7 +176,7 @@ Keep HTML next to report.json and its images. GitHub displays HTML source; clone
 | Screenshot upload | Requires your browser's attachment support or an explicitly chosen image host; no uploader is bundled |
 | Safari | Requires an available real Safari browser connection; not yet verified. WebKit is not labeled Safari |
 
-Posting through the helper requires authenticated `gh` access to github.com. The `publish` command is a dry run unless `--execute` is supplied. Uploaded images must be reviewed and accessible to PR readers. See [publication instructions](pr-visual-review/references/publishing.md) (Japanese).
+Posting through the helper requires authenticated `gh` access to github.com. The `publish` command is a dry run unless `--execute` is supplied. Uploaded images must be reviewed and accessible to PR readers. See [publication instructions](skills/pr-visual-review/references/publishing.md) (Japanese).
 
 If capture succeeds but upload is unavailable, the agent keeps local saved files and reports publication as incomplete. Preparing Markdown is not treated as successfully posting images.
 
@@ -231,7 +231,7 @@ claude --plugin-dir .
 
 For Codex, add the checkout as a local marketplace with `codex plugin marketplace add .`. Local development sources and GitHub sources with the same marketplace name should not be registered simultaneously. Keep your local changes before switching sources or pulling updates.
 
-The workflow's source stays in `pr-visual-review/`. The plugin exposes it at `skills/pr-visual-review/` through an internal relative link. See [plugin maintenance](docs/plugin-maintenance.md) for packaging and release steps.
+The workflow lives in `skills/pr-visual-review/` as real files so plugin caches can load it. The old `pr-visual-review/` path is a compatibility link for existing local checkouts. See [plugin maintenance](docs/plugin-maintenance.md) for packaging and release steps.
 
 ## Contribute
 

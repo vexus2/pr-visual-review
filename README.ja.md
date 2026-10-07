@@ -131,13 +131,13 @@ PR #123をPCのみ確認して。/signinを開いたらログインは自分で�
 
 「既存セッションを使う」「通常ログイン」「自分でログインする」「開発用fixture」の4方式と、ログイン不要の指定に対応します。設定ファイルは任意です。今回の指示 → 明示した設定ファイル → 対象プロジェクトの `.pr-visual-review.json` → 既存手順の順に優先します。
 
-繰り返し使う場合は [設定テンプレート](pr-visual-review/templates/auth.example.json) を対象プロジェクトへコピーし、URLのパス・必要なrole・操作・成功確認条件を設定してください。テンプレートは環境変数名を参照する例です。別のローカルJSON内のキーを参照することもできます。パスワード等の値は設定ファイルやSkillへ埋め込みません。
+繰り返し使う場合は [設定テンプレート](skills/pr-visual-review/templates/auth.example.json) を対象プロジェクトへコピーし、URLのパス・必要なrole・操作・成功確認条件を設定してください。テンプレートは環境変数名を参照する例です。別のローカルJSON内のキーを参照することもできます。パスワード等の値は設定ファイルやSkillへ埋め込みません。
 
 ```bash
 python3 /ABS/SKILL/scripts/auth_config.py /ABS/PROJECT/.pr-visual-review.json
 ```
 
-検証スクリプトは秘密値の取得やログインを行いません。実際の操作はAIがブラウザ機能で行い、Before/Afterの権限・データを照合します。レポートへは方式と確認状態だけを記録します。設定の全項目と例は [認証設定](pr-visual-review/references/authentication.md) にあります。
+検証スクリプトは秘密値の取得やログインを行いません。実際の操作はAIがブラウザ機能で行い、Before/Afterの権限・データを照合します。レポートへは方式と確認状態だけを記録します。設定の全項目と例は [認証設定](skills/pr-visual-review/references/authentication.md) にあります。
 
 ## 必要なものと初版の範囲
 
@@ -174,7 +174,7 @@ python3 /ABS/SKILL/scripts/review.py annotate /ABS/RUN/report.json --out /ABS/RU
 python3 /ABS/SKILL/scripts/review.py render /ABS/RUN/report.annotated.json > /ABS/RUN/report.md
 ```
 
-原画像と注釈付きPNGをそれぞれアップロードし、投稿にも派生JSONを使います。原画像や座標を変更した場合は、古いPNGを使わず再出力が必要です。PillowがなくてもHTMLの注釈は表示できますが、必要なPNGやURLがない状態では注釈付きPR投稿を止めます。[注釈の設定と手順](pr-visual-review/references/annotations.md)を参照してください。
+原画像と注釈付きPNGをそれぞれアップロードし、投稿にも派生JSONを使います。原画像や座標を変更した場合は、古いPNGを使わず再出力が必要です。PillowがなくてもHTMLの注釈は表示できますが、必要なPNGやURLがない状態では注釈付きPR投稿を止めます。[注釈の設定と手順](skills/pr-visual-review/references/annotations.md)を参照してください。
 
 ## プラグインの更新
 
@@ -219,7 +219,7 @@ claude --plugin-dir .
 
 Codexでは `codex plugin marketplace add .` でcheckoutをローカルカタログとして登録できます。同じカタログ名のローカル版とGitHub版は同時に登録せず、切替やpullの前にローカルの変更を保存してください。
 
-Skillの実体は `pr-visual-review/` に残し、プラグインの `skills/pr-visual-review/` から内部リンクで参照します。公開時の手順は [プラグインの保守](docs/plugin-maintenance.md) を参照してください。
+Skillの実体は `skills/pr-visual-review/` に置き、キャッシュへのコピーでも読み込めるようにしています。従来の `pr-visual-review/` は既存のローカルcheckout向けの互換リンクです。公開時の手順は [プラグインの保守](docs/plugin-maintenance.md) を参照してください。
 
 ## 同梱内容
 
@@ -228,8 +228,8 @@ plugin.json                共通プラグイン定義
 .codex-plugin/             Codex用定義
 .claude-plugin/            Claude Code用定義とカタログ
 .agents/plugins/           Codex用カタログ
-skills/pr-visual-review/   Skillの実体への内部リンク
-pr-visual-review/
+pr-visual-review/          従来パスの互換リンク
+skills/pr-visual-review/   Skillの実体
   SKILL.md                 共通の実行手順
   agents/openai.yaml       Codex UIメタデータ
   references/              環境、接続、認証、保存形式、PR掲載手順
@@ -242,7 +242,7 @@ tests/                     投稿と証拠記録の境界を検証
 examples/                  検証用の例と結果
 ```
 
-スクリプト単体でブラウザ検証が完了することはありません。使い方は `python3 pr-visual-review/scripts/review.py --help`、詳細は [保存形式](pr-visual-review/references/report-format.md) と [PR掲載](pr-visual-review/references/publishing.md) を参照してください。
+スクリプト単体でブラウザ検証が完了することはありません。使い方は `python3 skills/pr-visual-review/scripts/review.py --help`、詳細は [保存形式](skills/pr-visual-review/references/report-format.md) と [PR掲載](skills/pr-visual-review/references/publishing.md) を参照してください。
 
 ## 開発・検証
 
