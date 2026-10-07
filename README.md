@@ -4,9 +4,9 @@ English · [日本語](README.ja.md)
 
 **Turn a pull request into before/after screenshots and a visual review report.**
 
-A plugin for Codex and Claude Code, bundling the review skill and its local helpers.
+A plugin for Codex and Claude Code that bundles the review skill and local helpers.
 
-Ask Codex or Claude Code to inspect a PR. The agent reads the diff, chooses the relevant screens, runs both revisions, and captures matching states in your browser. You get screenshots, findings, and an explicit list of what was not verified.
+Ask Codex or Claude Code to inspect a PR. The agent reads the diff, selects the relevant screens, runs both revisions, and captures matching states in your browser. You get screenshots, findings, and an explicit list of what was not verified.
 
 ## How it works
 
@@ -20,7 +20,7 @@ Write the report in English. Keep the results local.
 
 **2. The agent selects screens from the diff and inspects both revisions.**
 
-It identifies the settings page, starts the base and head in separate worktrees, matches the viewport and data, and checks the changed controls. No prewritten Playwright test is required.
+It identifies the settings page, starts base and head in separate worktrees, matches the viewport and data, and checks the changed controls. No prewritten Playwright test is required.
 
 **3. Read the report.**
 
@@ -78,24 +78,9 @@ The examples below use the Codex skill name `$pr-visual-review`. In Claude Code,
 
 ### Requirements
 
-The plugin packages the workflow; it does not install a browser connection, Python, or your app's runtime. You need Git, Python **3.10+**, your app's dependencies, and a browser tool that can export screenshots. Annotated PNG export also needs optional Pillow. No hooks or MCP servers are bundled.
+The plugin packages the workflow; it does not install a browser connection, Python, or your app's runtime. You need Git, Python **3.10+**, your app's dependencies, and a browser tool that can export screenshots. Annotated PNG export also requires optional Pillow. No hooks or MCP servers are bundled.
 
-The initial packaging targets Codex CLI **0.158.0** and Claude Code **2.1.284**. Older clients may not support these commands. This is a public repository marketplace, not a listing in either vendor's official directory. Windows operation has not been verified.
-
-<details>
-<summary>Already using the standalone skill?</summary>
-
-The original skill directory and existing development links still work. Avoid enabling both the standalone and plugin copies if you want one unambiguous workflow. Keep any local edits before removing a standalone installation. Plugin installation does not remove it automatically.
-
-The standalone CLI route remains available for environments without plugin support:
-
-```bash
-npx skills add vexus2/pr-visual-review --skill pr-visual-review
-```
-
-That route uses the [skills CLI](https://github.com/vercel-labs/skills) and its own update tracking, not the plugin marketplace. Version 1.7.1 of that installer requires Node.js 22.20.0+.
-
-</details>
+The initial packaging targets Codex CLI **0.158.0** and Claude Code **2.1.284**. Older clients may not support these commands. This is a public repository marketplace, not an official directory listing from either vendor. Windows operation has not been verified.
 
 ## Choose what to review
 
@@ -106,11 +91,11 @@ $pr-visual-review Review PR #123 on desktop and mobile.
 $pr-visual-review Review PR #123 and attach the screenshots to that PR.
 ```
 
-- **Desktop / mobile / both:** review only the requested devices. Excluded devices are not counted as unverified.
-- **Viewport:** explicit dimensions take priority, followed by project conventions. Fallbacks are desktop 1280×1000 and mobile 390×844 CSS pixels. If unspecified, the skill starts with desktop only and states that assumption.
-- **Mobile means viewport testing:** it does not imply a physical phone or touch-device test.
+- **Desktop / mobile / both:** Review only the requested devices. Excluded devices are not counted as unverified.
+- **Viewport:** Explicit dimensions take priority, followed by project conventions. Fallbacks are desktop 1280×1000 and mobile 390×844 CSS pixels. If unspecified, the skill starts with desktop only and states that assumption.
+- **Mobile means viewport testing:** It does not imply testing on a physical phone or touch device.
 - **Comparison:** Before defaults to the merge base of the PR head and the target-branch snapshot. You can request another base, such as current main. Exact SHAs are recorded.
-- **Language:** request English or Japanese. Set `language` to `en` or `ja` in report.json; omitted values preserve the legacy Japanese labels. The renderer translates labels, not your findings.
+- **Language:** Request English or Japanese. Set `language` to `en` or `ja` in report.json; omitted values preserve the legacy Japanese labels. The renderer translates labels, not your findings.
 
 A request to “review” creates local results. A request to “attach screenshots to the PR” also authorizes publication to that PR. Reruns update the skill's own comment, never someone else's.
 
@@ -129,7 +114,7 @@ Or place a recipe at the target project's `.pr-visual-review.json` and say:
 Use .pr-visual-review.json for login. Review PR #123 on mobile only.
 ```
 
-Supported modes: existing session, form login, manual login, development fixture, and no login. Current instructions take priority over an explicitly selected config, then the project's config, then existing project instructions.
+Supported modes: existing session, form login, manual login, development fixture, and no login. Current instructions take priority over an explicitly selected config, followed by the project config, then existing project instructions.
 
 Copy the [configuration example](skills/pr-visual-review/templates/auth.example.json). Reference environment variable names or keys in a local JSON file; do not put password values in the skill or recipe. The agent checks identity, role, and comparison data separately on Before and After. Reports record only the mode and verification statuses.
 
@@ -137,11 +122,11 @@ Copy the [configuration example](skills/pr-visual-review/templates/auth.example.
 python3 /PATH/TO/SKILL/scripts/auth_config.py /PATH/TO/PROJECT/.pr-visual-review.json
 ```
 
-This checks the recipe. It does **not** read credentials or log in. Detailed [authentication guidance](skills/pr-visual-review/references/authentication.md) is currently in Japanese.
+This validates the recipe. It does **not** read credentials or log in. Detailed [authentication guidance](skills/pr-visual-review/references/authentication.md) is currently in Japanese.
 
 ## Output
 
-A run produces screenshots plus `report.json`, `report.md`, and `report.html`. Changed areas and UI problems can be marked with numbered frames. The original screenshots are kept unchanged. HTML overlays the frames on the originals; Markdown and GitHub comments use separate annotated PNGs.
+A run produces screenshots plus `report.json`, `report.md`, and `report.html`. Changed areas and UI problems can be marked with numbered frames. Original screenshots remain unchanged. The HTML report overlays frames on the originals; Markdown and GitHub comments use separate annotated PNGs.
 
 The report distinguishes **introduced**, **worsened**, **pre-existing**, and **unestablished** causes, with separate **required**, **optional**, and **investigate** priorities. Existing overflow or ordinary text wrapping is not automatically a blocker for the current PR.
 
@@ -163,30 +148,15 @@ python3 /PATH/TO/SKILL/scripts/review.py render /PATH/TO/RUN/report.annotated.js
 
 Use the derived JSON for publication too. Upload both the original and annotated images. The helper checks that the marked PNG still matches its source and region definitions. HTML overlays work without Pillow; missing PNGs or upload URLs block annotated PR publication. See [annotation instructions](skills/pr-visual-review/references/annotations.md) (Japanese).
 
-Keep HTML next to report.json and its images. GitHub displays HTML source; clone/download the example to view it in a browser. Read the [report format](skills/pr-visual-review/references/report-format.md) for details (Japanese).
+Keep HTML next to report.json and its images. GitHub displays HTML source; clone or download the example to view it in a browser. Read the [report format](skills/pr-visual-review/references/report-format.md) for details (Japanese).
 
-## Browser support and publication
+## Browser and PR publishing
 
-| Capability | Status |
-| --- | --- |
-| Codex + real Chrome: local startup, capture, and report | Verified with the bundled local fixtures |
-| Markdown/HTML, device scope, login config validation | Implemented and covered by automated tests |
-| Claude Code | Adapter instructions provided; live operation not yet verified |
-| GitHub comment create/update | Implemented and tested with a fake API; live posting not yet verified |
-| Screenshot upload | Requires your browser's attachment support or an explicitly chosen image host; no uploader is bundled |
-| Safari | Requires an available real Safari browser connection; not yet verified. WebKit is not labeled Safari |
+Chrome is the default browser. Safari checks require a connection to real Safari; WebKit results are not presented as Safari results.
 
-Posting through the helper requires authenticated `gh` access to github.com. The `publish` command is a dry run unless `--execute` is supplied. Uploaded images must be reviewed and accessible to PR readers. See [publication instructions](skills/pr-visual-review/references/publishing.md) (Japanese).
+Posting uses authenticated `gh` access to github.com and either your browser's image attachment feature or an image host you specify. No uploader is bundled. If upload is unavailable, the agent keeps the screenshots and report locally.
 
-If capture succeeds but upload is unavailable, the agent keeps local saved files and reports publication as incomplete. Preparing Markdown is not treated as successfully posting images.
-
-## Limits and data handling
-
-This plugin contains a skill and small helper scripts, not a complete visual regression test system. Screen selection can miss affected states. A clean report does not prove that every page, feature, or security property is correct.
-
-The project does not operate an image-hosting service. Its helper scripts and generated HTML contain no custom analytics or telemetry. Your AI host, browser integration, app, GitHub, and chosen image host have their own networking and data policies. Keep credentials and customer data out of saved files and public issues.
-
-Pixel diffs, CI orchestration, GitHub Enterprise, and a dedicated Safari driver are outside the current scope. Direct `file://` preview was blocked by the development browser tool; HTML rendering was checked over loopback HTTP.
+Live PR image posting has not yet been verified. See the [validation notes](examples/validation.md) for the checks completed so far, including browser integrations. The helper's `publish` command is a dry run unless `--execute` is supplied; see the [publication instructions](skills/pr-visual-review/references/publishing.md) for details (Japanese).
 
 ## Update the plugin
 
@@ -212,13 +182,6 @@ codex plugin add pr-visual-review@pr-visual-review-marketplace
 
 Start a new session after updating. Automatic background update timing depends on the Codex client and is not guaranteed here. Releases bump the plugin version; see [CHANGELOG.md](CHANGELOG.md).
 
-<details>
-<summary>Updating a standalone skill installation</summary>
-
-For a skills CLI installation, run `npx skills update pr-visual-review --project` from the project, or use `--global` for a user-wide installation. Manual copies and Codex's skill-installer use their own replacement procedure. These are separate from plugin updates.
-
-</details>
-
 ## Developing the plugin
 
 Clone the repository when you want to edit it:
@@ -229,9 +192,9 @@ cd pr-visual-review
 claude --plugin-dir .
 ```
 
-For Codex, add the checkout as a local marketplace with `codex plugin marketplace add .`. Local development sources and GitHub sources with the same marketplace name should not be registered simultaneously. Keep your local changes before switching sources or pulling updates.
+For Codex, add the checkout as a local marketplace with `codex plugin marketplace add .`. Local development sources and GitHub sources with the same marketplace name should not be registered simultaneously. Save your local changes before switching sources or pulling updates.
 
-The workflow lives in `skills/pr-visual-review/` as real files so plugin caches can load it. The old `pr-visual-review/` path is a compatibility link for existing local checkouts. See [plugin maintenance](docs/plugin-maintenance.md) for packaging and release steps.
+The workflow lives in `skills/pr-visual-review/` as real files so plugin caches can load it. See [plugin maintenance](docs/plugin-maintenance.md) for packaging and release steps.
 
 ## Contribute
 
@@ -243,4 +206,4 @@ Core tests use Python's standard library. PNG export tests also need the optiona
 
 ## License
 
-[MIT](LICENSE).
+[MIT](LICENSE)
