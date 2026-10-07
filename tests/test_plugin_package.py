@@ -37,12 +37,11 @@ class PluginPackageTest(unittest.TestCase):
         self.assertEqual(codex['plugins'][0]['policy']['installation'], 'AVAILABLE')
         self.assertNotIn('version', claude['plugins'][0])
 
-    def test_plugin_skill_keeps_the_existing_source_as_single_authority(self):
-        link = ROOT / 'pr-visual-review'
-        self.assertTrue(link.is_symlink())
-        self.assertEqual(link.resolve(), ROOT / 'skills/pr-visual-review')
-        self.assertFalse((ROOT / 'skills/pr-visual-review').is_symlink())
-        self.assertTrue((link / 'SKILL.md').is_file())
+    def test_plugin_skill_is_a_real_directory(self):
+        skill = ROOT / 'skills/pr-visual-review'
+        self.assertFalse(skill.is_symlink())
+        self.assertTrue((skill / 'SKILL.md').is_file())
+        self.assertFalse((ROOT / 'pr-visual-review').exists(), 'the old root-level alias was removed in 0.1.2')
 
     def test_copied_package_can_load_the_skill_helpers_and_assets(self):
         with tempfile.TemporaryDirectory() as tmp:

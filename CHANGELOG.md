@@ -8,6 +8,7 @@
 - Add GitHub Actions tests (Python 3.10 / 3.12, with and without Pillow), SECURITY.md, and issue templates.
 - Move packaging and release steps into CONTRIBUTING.md; `docs/` is now untracked working notes.
 - Update the Codex and Claude Code adapter notes to the plugin installation path and remove the standalone-skill instructions.
+- Remove the root-level `pr-visual-review` compatibility symlink; the skill lives only under `skills/pr-visual-review/`.
 
 ## 0.1.1 — 2026-10-07
 

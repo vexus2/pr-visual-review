@@ -5,8 +5,8 @@
 ## プラグイン形式
 
 - 共通manifest、Codex / Claude Code互換manifest、両ホストのリポジトリカタログを追加しました。
-- 初回0.1.0をGitHubからCodexへインストールしたところ、Skillへのsymlinkがキャッシュにコピーされず、manifest上は導入成功でもSkill本体が欠ける問題を確認しました。0.1.1では標準のskills/pr-visual-reviewへ実体を置き、従来パスだけを互換リンクにしています。
-- テストが成功しました。各manifestの名前/version一致、カタログからの解決、従来の開発リンクの解決、symlinkをコピーしないキャッシュを再現したヘルパー起動を確認しています。
+- 初回0.1.0をGitHubからCodexへインストールしたところ、Skillへのsymlinkがキャッシュにコピーされず、manifest上は導入成功でもSkill本体が欠ける問題を確認しました。0.1.1では標準のskills/pr-visual-reviewへ実体を置きました（当時残した従来パスの互換リンクは0.1.2で削除）。
+- テストが成功しました。各manifestの名前/version一致、カタログからの解決、symlinkをコピーしないキャッシュを再現したヘルパー起動を確認しています。
 - Codex CLI 0.158.0でカタログを認識しました。Claude Code 2.1.284の --plugin-dirではSkill 1件・Hooks/MCP/Agents/LSP 0件のinventoryを確認し、修正後のmanifestとカタログはstrict validationも成功しました。
 - この確認はパッケージの認識と読込の検証です。新規のアプリ撮影やPR投稿の再検証、公式プラグインディレクトリへの掲載審査を行ったものではありません。
 
