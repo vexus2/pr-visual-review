@@ -52,6 +52,12 @@ conditions. Present it and proceed. If there is no visual effect, explain why;
 do not invent a screenshot target. Select representative surrounding pages for
 shared components; disclose excluded consumers and uncertain reachability.
 
+Keep the plan small. The review is about what the diff changes on screen: one
+whole-screen comparison per changed screen plus one case per changed state, at
+most four cases unless the user asks for more. Error, loading, and mocked-backend
+states are captured only when requested. More cases make the report longer, not
+better.
+
 ## 3. Run and capture
 
 Use each commit's own install/start instructions on distinct ports. Apply the
@@ -80,6 +86,13 @@ follow [report-format.md](references/report-format.md). Fill it from observed
 evidence. Use `intended`, `needs-review`, `unchanged`, or `unverified` per state.
 Set `language` to `en` for English output or `ja` for Japanese (the legacy default).
 Write findings in the requested language; the renderer localizes labels only.
+Write for the PR's reviewers, who will skim: `finding` is at most two plain
+sentences about what the images show, `reason` is one sentence, and shared
+browser/conditions belong at report level; set a case's own `browser` or
+`conditions` only when they differ. Never mention other skills, tools, prompts,
+or agent internals in the report. The Markdown body shows only changed and
+needs-review cases; unchanged, new/removed, and unverified cases and all run
+conditions are collapsed at the end, so put details there, not in `finding`.
 `unchanged` requires both real captures. Classify each issue separately as
 introduced, worsened, pre-existing, or unknown, and its priority as required,
 optional, or investigate. Required needs observed usability impact and evidence

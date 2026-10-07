@@ -128,6 +128,8 @@ This validates the recipe. It does **not** read credentials or log in. Detailed 
 
 A run produces screenshots plus `report.json`, `report.md`, and `report.html`. Changed areas and UI problems can be marked with numbered frames. Original screenshots remain unchanged. The HTML report overlays frames on the originals; Markdown and GitHub comments use separate annotated PNGs.
 
+The Markdown report and the PR comment are built to be skimmed: a one-line count, then only the changed screens with their Before/After images and a short finding. Unchanged screens, new or removed screens, unverified cases, replay steps, and run conditions are collapsed at the end. The HTML report keeps everything expanded.
+
 The report distinguishes **introduced**, **worsened**, **pre-existing**, and **unestablished** causes, with separate **required**, **optional**, and **investigate** priorities. Existing overflow or ordinary text wrapping is not automatically a blocker for the current PR.
 
 For reports without annotations, generate both views from the same report data:
@@ -156,7 +158,7 @@ Chrome is the default browser. Safari checks require a connection to real Safari
 
 Posting uses authenticated `gh` access to github.com and either your browser's image attachment feature or an image host you specify. No uploader is bundled. If upload is unavailable, the agent keeps the screenshots and report locally.
 
-Live PR image posting has not yet been verified. See the [validation notes](examples/validation.md) for the checks completed so far, including browser integrations. The helper's `publish` command is a dry run unless `--execute` is supplied; see the [publication instructions](skills/pr-visual-review/references/publishing.md) for details (Japanese).
+Live PR posting has been exercised once on a private repository: 13 images attached through GitHub's upload UI and one owned comment created by the helper. See the [validation notes](examples/validation.md) for the checks completed so far, including browser integrations. The helper's `publish` command is a dry run unless `--execute` is supplied; see the [publication instructions](skills/pr-visual-review/references/publishing.md) for details (Japanese).
 
 ## Update the plugin
 

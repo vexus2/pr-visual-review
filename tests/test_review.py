@@ -76,7 +76,7 @@ class ReviewTest(unittest.TestCase):
         self.assertNotIn('https://example.com/before', md)
         self.assertIn('Safari未実施', md)
         self.assertIn('a' * 40, md)
-        self.assertIn('意図した変更を確認', md)
+        self.assertIn('変更あり', md)
 
     def test_remote_report_uses_urls(self):
         md = review.render(self.report, self.root, remote=True)
@@ -98,7 +98,8 @@ class ReviewTest(unittest.TestCase):
     def test_absent_before_has_no_fake_image(self):
         self.report['cases'][0]['before'] = {'state': 'absent', 'note': 'コミットのルート定義に存在しません。'}
         md = review.render(self.report, self.root)
-        self.assertIn('存在しない', md)
+        self.assertIn('Beforeなし', md)
+        self.assertIn('コミットのルート定義に存在しません', md)
         self.assertNotIn('images/before.png', md)
 
     def test_unverified_cannot_be_no_change(self):
@@ -283,6 +284,56 @@ class ReviewTest(unittest.TestCase):
                     self.assertIn('通知設定の見出し', rendered)
                     self.assertIn('375' if device == 'sp' else '1280', rendered)
 
+    def layout_report(self):
+        """One case per Markdown group: changed, needs-review, unchanged, new, unverified."""
+        r = self.v2()
+        r['scope']['devices'] = ['pc']
+        base = r['cases'][0]
+        base.update(id='changed', title='変更ケース', finding='欄が増えた')
+        review_case = copy.deepcopy(base)
+        review_case.update(id='broken', title='崩れケース', result='needs-review', finding='ボタンが隠れる',
+                           issues=[{'origin': 'introduced', 'priority': 'required', 'summary': '保存ボタンが画面外',
+                                    'evidence': 'After画像', 'impact': '保存できない'}])
+        unchanged = copy.deepcopy(base)
+        unchanged.update(id='same', title='同じケース', result='unchanged', finding='差なし', conditions='個別条件XYZ')
+        new = copy.deepcopy(base)
+        new.update(id='fresh', title='新規ケース', finding='新しい画面', before={'state': 'absent', 'note': '新規route'})
+        unverified = copy.deepcopy(base)
+        unverified.update(id='blocked', title='未確認ケース', result='unverified', finding='起動できず',
+                          before={'state': 'unverified', 'note': 'install失敗'}, after={'state': 'unverified', 'note': 'install失敗'})
+        r['cases'] = [base, new, unchanged, review_case, unverified]
+        return r
+
+    def test_markdown_body_shows_only_changed_cases_and_collapses_the_rest(self):
+        md = review.render(self.layout_report(), self.root)
+        body, details = md.split('<details>', 1)
+        self.assertIn('### 崩れケース — 要確認', body)
+        self.assertIn('### 変更ケース — 変更あり', body)
+        self.assertLess(body.index('崩れケース'), body.index('変更ケース'), 'action-required cases come first')
+        for title in ('同じケース', '新規ケース', '未確認ケース'):
+            self.assertNotIn(title, body)
+            self.assertIn(title, details)
+        self.assertIn('<summary>変化なし 1</summary>', details)
+        self.assertIn('<summary>新規・削除画面 1</summary>', details)
+        self.assertIn('<summary>未確認 1</summary>', details)
+        self.assertIn('| Beforeなし |', details)
+        self.assertIn('- **要対応** · 今回発生: 保存ボタンが画面外', body)
+
+    def test_markdown_states_shared_conditions_once_and_overrides_only_when_different(self):
+        md = review.render(self.layout_report(), self.root)
+        self.assertEqual(md.count(self.report['conditions']), 1)
+        self.assertEqual(md.count(review.safe_text(self.report['browser'])), 1)
+        self.assertEqual(md.count('個別条件XYZ'), 1)
+        self.assertEqual(md.count('設定を開く'), 5, 'steps appear once per case, inside the details block')
+        self.assertLess(md.index('<summary>確認条件・未確認事項</summary>'), md.index('設定を開く'))
+        self.assertIn('2026-10-07T12:00+09:00', md)
+        self.assertNotIn('12:00:00', md)
+
+    def test_summary_counts_omit_zero_except_action_required(self):
+        md = review.render(self.layout_report(), self.root)
+        self.assertIn('**要対応 1 · 要確認 1 · 変更あり 1 · 変化なし 1 · 新規・削除画面 1 · 未確認 1**', md)
+        self.assertIn('**要対応 0 · 変更あり 1**', review.render(self.v2(), self.root))
+
     def test_scope_does_not_allow_other_device_cases(self):
         r = self.v2('sp')
         r['cases'][0]['device'] = 'pc'
@@ -318,9 +369,9 @@ class ReviewTest(unittest.TestCase):
             'evidence':'前後ともdocument幅916px', 'impact':'今回の悪化は観測していません'}])
         for fmt in ['markdown','html']:
             output = review.render(r, self.root, format=fmt)
-            self.assertIn('既存の問題', output)
-            self.assertIn('任意改善', output)
-            self.assertIn('PRで要対応: 0', output)
+            self.assertIn('既存', output)
+            self.assertIn('任意', output)
+            self.assertIn('要対応 0', output)
         r['cases'][0]['issues'][0]['priority'] = 'required'
         with self.assertRaises(ValueError):
             review.render(r, self.root)
@@ -333,7 +384,7 @@ class ReviewTest(unittest.TestCase):
         with self.assertRaises(ValueError):
             review.render(r, self.root)
         r['cases'][0]['issues'][0]['priority'] = 'investigate'
-        self.assertIn('因果未確定', review.render(r,self.root))
+        self.assertIn('原因不明', review.render(r,self.root))
 
     def test_required_issue_requires_impact_and_visual_evidence(self):
         r = self.v2()
@@ -343,7 +394,7 @@ class ReviewTest(unittest.TestCase):
         with self.assertRaises(ValueError):
             review.render(r, self.root)
         r['cases'][0]['issues'][0]['impact'] = '選択肢が判読困難'
-        self.assertIn('PRで要対応: 1', review.render(r,self.root))
+        self.assertIn('要対応 1', review.render(r,self.root))
         r['cases'][0]['result'] = 'unverified'
         r['cases'][0]['after'] = {'state':'unverified','note':'ログイン不可'}
         with self.assertRaises(ValueError):
@@ -379,8 +430,8 @@ class ReviewTest(unittest.TestCase):
         self.report['cases'][0]['result']='needs-review'
         output=review.render(self.report,self.root,format='html')
         self.assertIn('対象端末の記録なし',output)
-        self.assertIn('要確認（未分類）: 1',output)
-        self.assertIn('PRで要対応: 0',output)
+        self.assertIn('要確認 1',output)
+        self.assertIn('要対応 0',output)
 
     def test_cli_generates_html_from_saved_report(self):
         import subprocess
@@ -395,8 +446,8 @@ class ReviewTest(unittest.TestCase):
         r['authentication'] = {'mode':'manual', 'before':'verified', 'after':'unverified', 'equivalence':'unverified'}
         for fmt in ['markdown', 'html']:
             output = review.render(r, self.root, format=fmt)
-            self.assertIn('ユーザーによるログイン', output)
-            self.assertIn('After: 未確認', output)
+            self.assertIn('手動ログイン', output)
+            self.assertIn('After 未確認', output)
         r['authentication']['password'] = 'SECRET'
         with self.assertRaises(ValueError) as caught: review.render(r,self.root)
         self.assertNotIn('SECRET',str(caught.exception))
@@ -406,7 +457,7 @@ class ReviewTest(unittest.TestCase):
         r['authentication']={'mode':'form','before':'verified','after':'unverified','equivalence':'verified'}
         with self.assertRaises(ValueError): review.render(r,self.root)
         r['authentication']['after']='verified'
-        self.assertIn('権限・データ一致: 確認済み',review.render(r,self.root))
+        self.assertIn('権限・データ一致 確認済み',review.render(r,self.root))
 
     def test_public_authentication_does_not_claim_login(self):
         r=self.v2()
@@ -428,8 +479,8 @@ class ReviewTest(unittest.TestCase):
                  alignment={'method':'page-top','anchor':'Page heading','note':'Same position'})
         for fmt in ['markdown','html']:
             output=review.render(r,self.root,format=fmt)
-            self.assertIn('Action required: 0',output)
-            self.assertIn('Expected change verified',output)
+            self.assertIn('Action required 0',output)
+            self.assertIn('Changed',output)
             self.assertIsNone(re.search(r'[\u3040-\u30ff\u4e00-\u9fff]',output))
         c['finding']='Keep the observed text: 保存'
         self.assertIn('Keep the observed text: 保存',review.render(r,self.root,format='html'))
@@ -501,7 +552,7 @@ class ReviewTest(unittest.TestCase):
             self.assertNotEqual(im.getpixel((40,60))[:3],(255,255,255))
         md=review.render(output,self.root)
         self.assertIn(c['annotated_image'],md)
-        self.assertIn('Original screenshot',md)
+        self.assertIn('[original](<images/after.png>)',md)
         # Edited box and changed source both invalidate the derived file.
         stale=copy.deepcopy(output);stale['cases'][0]['annotations'][0]['after']['x']=.2
         with self.assertRaises(ValueError):review.render(stale,self.root)

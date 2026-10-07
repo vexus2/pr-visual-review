@@ -1,20 +1,27 @@
 {
   "PC": "Desktop", "SP": "Mobile", "PCのみ": "Desktop only", "SPのみ": "Mobile only", "PC・SP": "Desktop + mobile",
-  "変更": "Change", "問題": "Issue", "参照": "Ref", "注釈付き": "Annotated", "原画像": "Original screenshot", "注釈なしの原画像": "Original screenshots (no annotations)",
-  "灰色はBeforeの参照箇所、青は変更、赤は問題です。番号は説明と対応します。": "Gray marks the Before reference; blue marks a change; red marks an issue. Numbers match the notes below.",
-  "明示指定": "Requested", "既定": "Default", "対象端末の記録なし（旧形式）": "Device scope not recorded (legacy report)",
-  "意図した変更を確認": "Expected change verified", "要確認": "Needs review", "見た目の変化なし": "No visible change", "未確認": "Not verified",
-  "新規UI・今回発生": "Introduced in this change", "今回悪化": "Worsened in this change", "既存の問題": "Pre-existing issue", "因果未確定": "Cause not established",
-  "PRで要対応": "Action required", "任意改善": "Optional improvements", "要調査": "Needs investigation", "未確認ケース": "Unverified cases", "要確認（未分類）": "Unclassified findings",
-  "既存セッション": "Existing session", "通常ログイン": "Form login", "ユーザーによるログイン": "Manual login", "開発用fixture": "Development fixture", "ログイン不要": "No login required",
-  "確認済み": "Verified", "不要": "Not required", "認証": "Authentication", "権限・データ一致": "Role and data equivalence", "認証方法・結果の構造化記録なし": "Authentication details not recorded",
-  "対象": "Repository", "確認範囲": "Scope", "比較元": "Comparison", "撮影日時": "Captured", "ブラウザ": "Browser", "条件": "Conditions",
-  "画面": "Route", "選定根拠": "Why this screen", "操作": "Steps", "根拠": "Evidence", "影響": "Impact", "撮影基準": "Alignment",
-  "撮影基準の構造化記録なし。操作手順を参照してください。": "Alignment not recorded. See the replay steps.",
-  "存在しない": "Not present", "変更箇所の拡大": "Detail view", "詳細": "Detail", "詳細画像なし。上の文脈画像を参照してください。": "No detail capture. See the context image above.",
-  "変更箇所の詳細を開く": "Open detail captures", "操作手順と比較条件": "Replay steps and conditions", "共通条件": "Shared conditions", "個別条件": "Case conditions",
-  "未確認事項・制約": "Unverified scope and limitations", "記録された対象内に追加の制約はありません。": "No additional limitations recorded within the selected scope.",
-  "件数は記録された指摘の集計です。0件でも安全性・マージ可否の保証ではありません。": "Counts summarize recorded findings. Zero findings do not establish safety or approval to merge.",
-  "記載した画面・状態だけを確認しています。全画面の回帰がないことは保証しません。": "Only the listed screens and states were inspected. This is not a guarantee against regressions elsewhere.",
-  "コミットと実行条件": "Commits and environment", "確認した画面": "Reviewed screens", "画面比較": "Visual review", "の画面比較": "visual review"
+  "明示指定": "requested", "既定": "default", "対象端末の記録なし（旧形式）": "Device scope not recorded (legacy report)",
+
+  "変更あり": "Changed", "要確認": "Needs review", "変化なし": "No change", "未確認": "Not verified",
+  "Beforeなし": "No Before", "Afterなし": "No After", "新規・削除画面": "New or removed screens",
+  "要対応": "Action required", "任意": "Optional", "要調査": "Investigate",
+  "今回発生": "Introduced", "今回悪化": "Worsened", "既存": "Pre-existing", "原因不明": "Cause unknown",
+
+  "既存セッション": "Existing session", "フォームログイン": "Form login", "手動ログイン": "Manual login", "開発用fixture": "Development fixture", "ログイン不要": "No login",
+  "確認済み": "verified", "不要": "n/a", "認証": "Login", "権限・データ一致": "same role/data", "認証の記録なし": "Login not recorded",
+
+  "変更": "Change", "問題": "Issue", "参照": "Ref", "注釈": "Annotations", "注釈付き": "annotated", "原画像": "original", "注釈なしの原画像": "Original screenshots (no annotations)",
+  "灰色はBeforeの参照箇所、青は変更、赤は問題です。番号は説明と対応します。": "Gray = Before reference, blue = change, red = issue. Numbers match the notes.",
+
+  "画像を開く": "Show images", "確認条件・未確認事項": "Conditions and unverified scope", "各ケースの手順": "Steps per case",
+  "コミット": "Commits", "撮影": "Captured", "ブラウザ": "Browser", "条件": "Conditions", "確認範囲": "Scope",
+  "画面": "Route", "操作": "Steps", "理由": "Why", "撮影基準": "Alignment", "根拠": "Evidence", "影響": "Impact",
+  "未確認事項": "Not verified", "未確認事項なし": "Nothing further to report",
+  "この画面・状態だけを確認しました。0件でも安全性やマージ可否を保証するものではありません。": "Only these screens and states were checked. Zero findings do not establish safety or approval to merge.",
+
+  "撮影基準の記録なし。操作手順を参照してください。": "Alignment not recorded. See the steps.",
+  "詳細": "Detail", "拡大": "detail", "詳細画像なし。上の文脈画像を参照してください。": "No detail capture. See the context image above.",
+  "変更箇所の詳細を開く": "Open detail captures", "操作手順と比較条件": "Steps and conditions", "選定根拠": "Why this screen", "共通条件": "Shared conditions", "個別条件": "Case conditions",
+  "コミットと実行条件": "Commits and environment", "確認した画面": "Reviewed screens", "画面比較": "Visual review", "の画面比較": "visual review",
+  "比較元": "Comparison", "撮影日時": "Captured"
 }

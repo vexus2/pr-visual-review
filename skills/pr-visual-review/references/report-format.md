@@ -61,7 +61,7 @@ viewportはCSS pxの正整数です。未撮影caseでは予定値とその旨�
 
 分類と撮影基準は [capture-plan.md](capture-plan.md) に従います。既存/悪化の断定にはBefore画像、問題の記録にはAfter画像が必要です。requiredはintroduced/worsenedかつcase結果needs-reviewに限ります。unknownはinvestigateだけです。横スクロールや折り返しだけを必須修正と判定しません。summaryの件数は指摘数でありcase数とは異なります。
 
-v1にはscope/alignment/issuesを追加せず、そのまま読めます。旧形式は「対象端末の記録なし」「要確認（未分類）」として表示し、本文から由来・必須修正の件数を推測しません。v2への変更は、人が根拠を確認して必要な項目を記入するときだけ行います。コメントmarkerのv1はコメント識別用の固定値であり、reportのschema_versionとは別です。
+v1にはscope/alignment/issuesを追加せず、そのまま読めます。旧形式は「対象端末の記録なし」として表示し、本文から由来・必須修正の件数を推測しません。v2への変更は、人が根拠を確認して必要な項目を記入するときだけ行います。コメントmarkerのv1はコメント識別用の固定値であり、reportのschema_versionとは別です。
 
 before / after:
 
@@ -90,6 +90,8 @@ python3 /ABS/SKILL/scripts/review.py render /ABS/RUN/report.json > /ABS/RUN/repo
 python3 /ABS/SKILL/scripts/review.py render /ABS/RUN/report.json --format html > /ABS/RUN/report.html
 python3 /ABS/SKILL/scripts/review.py render /ABS/RUN/report.json --remote > /ABS/RUN/comment.md
 ```
+
+Markdown（report.mdとPRコメント）の構成は固定です。冒頭に「要対応 / 要確認 / 変更あり / 変化なし / 新規・削除画面 / 未確認」の件数（0件は要対応以外省略）と端末・ブラウザを1行。本文には `needs-review` と、前後ともcapturedの `intended` だけを「見出し・Before/After画像・所見・指摘の一行」で並べ、要対応のあるケースを先頭にします。`unchanged`、片側absentの新規・削除画面、`unverified` はそれぞれ折りたたみにまとめます。コミット、撮影日時、認証、条件、各ケースの操作手順・理由・撮影基準・absent/unverifiedの理由、指摘の根拠と影響、未確認事項は末尾の折りたたみに一度だけ出します。caseの `browser` / `conditions` は report全体と異なるときだけ表示します。読む側が短時間で差分を把握できるよう、`finding` は2文以内に収めてください。
 
 HTMLはJavaScript・外部フォント不要で、CSSを埋め込んだオフライン表示です。画像はreport.jsonと同じディレクトリ基準の相対パスなので、HTMLも同じ場所に保存します。移動するときはimagesを含むrun全体を移します。画像は原寸を超えて拡大せず、クリックで元画像を表示します。既存成果物を再表示する場合は別名へ保存し、撮影日時/SHAを書き換えません。
 

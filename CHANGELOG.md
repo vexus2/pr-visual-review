@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.1.3 — 2026-10-07
+
+- Markdown report and PR comment are rewritten to be skimmed. The body contains only changed and needs-review cases (action-required first) with images and a short finding. Unchanged, new/removed, and unverified cases, replay steps, run conditions, commits, and limitations are collapsed at the end. Shared browser/conditions are stated once; per-case values appear only when they differ. The first live run produced a 9,800-character comment that reviewers did not read.
+- The summary line now counts changed / no-change / new-or-removed / unverified cases separately, so "0 unverified" no longer hides cases that had no Before.
+- Plainer labels in both languages, for example "変更あり" instead of "意図した変更を確認"; timestamps are shown to the minute.
+- SKILL.md limits the default plan to the screens the diff changes (at most four cases unless asked), keeps findings to two sentences, and forbids mentioning other skills or tools in the report.
+- Validation notes record the first live PR posting (private repository, 13 images) and why the format changed. README demo screenshot regenerated from the current renderer.
+- Report schema is unchanged; existing report.json files render in the new layout.
+
 ## 0.1.2 — 2026-10-07
 
 - Fix: `publish` no longer crashes on a PR comment whose author account was deleted (`user: null`).
